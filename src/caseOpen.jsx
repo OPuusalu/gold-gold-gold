@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
+import './style/caseOpen.css';
 import { fetchRandomItem } from "./api/caseApi";
 import { CASE_CONFIG } from "./models/caseConfiguration";
 
@@ -278,42 +279,8 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
     ]);
 
     return (
-        <div
-            id="page-container"
-            style={{ 
-                position: 'relative',
-                fontFamily: "'Inter', sans-serif",
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: '100vh',
-                minWidth: 6 * itemWidth,
-                boxSizing: 'border-box',
-                overflowX: 'hidden'
-            }}
-        >   
-            <div 
-                id="main-container"
-                style={{
-                    maxWidth: 6 * itemWidth,
-                    display: 'flex',
-                    marginTop: '90px',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.15))',
-                    borderRadius: '8px',
-                    backdropFilter: 'blur(12px)',
-                    position: 'relative',
-                    ':before': {
-                        content: '""',
-                        position: 'absolute',
-                        inset: 0,
-                        opacity: 0.6,
-                        zIndex: 0
-                    }
-                }}
-            >
+        <div id="page-container" style={{ minWidth: 6 * itemWidth }}>   
+            <div id="main-container" style={{ maxWidth: 6 * itemWidth }}>
                 {!state.isCaseOpened ? (
                     <img 
                         src={caseData.image} 
@@ -325,10 +292,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                             display: 'block',
                             filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.15))',
                             transform: 'rotateY(0deg)',
-                            transition: 'transform 0.3s ease',
-                            ':hover': {
-                                transform: 'rotateY(10deg)'
-                            }
+                            transition: 'transform 0.3s ease'
                         }} 
                     />
                 ) : (
@@ -337,16 +301,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
             </div>
             
             <div id='win-text-container'
-                style={{ 
-                    position: 'relative',
-                    width: '100%',
-                    textAlign: 'center',
-                    padding: '1.5rem',
-                    maxWidth: 6 * itemWidth,
-                    borderRadius: '8px',
-                    margin: '1rem 0',
-                    zIndex: 3,
-                }}>
+                style={{ maxWidth: 6 * itemWidth}}>
                 <motion.h2 
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ 
@@ -376,7 +331,8 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                 </motion.h2>
             </div>
     
-            <button 
+            <button
+                id="open-case-button"
                 type="button" 
                 onClick={openCase} 
                 disabled={state.isOpening || coins < caseData.price} 

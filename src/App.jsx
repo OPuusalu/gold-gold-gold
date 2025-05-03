@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import './App.css';
+import './style/App.css';
 import CaseOpen from './caseOpen';
 import { CaseItem } from './models/CaseItem';
 
@@ -13,7 +13,7 @@ function App() {
     const tokenFromUrl = urlParams.get('token');
 
     if (tokenFromUrl) {
-      localStorage.setItem('userToken', tokenFromUrl); // store for later use
+      localStorage.setItem('userToken', tokenFromUrl);
       setIsAuthenticated(true);
     } else {
       setIsAuthenticated(false);
@@ -69,71 +69,40 @@ function App() {
   ];
 
   if (isAuthenticated === null) {
-    return <div style={{ textAlign: 'center', paddingTop: '20vh' }}>🔄 Checking authentication...</div>;
+    return <div className="auth-loading">🔄 Checking authentication...</div>;
   }
 
   if (!isAuthenticated) {
-    return <div style={{ textAlign: 'center', paddingTop: '20vh' }}>🔒 Access Denied</div>;
+    return <div className="auth-denied">🔒 Access Denied</div>;
   }
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-    }}>
+    <div className="app-container">
       {/* Header with coin display */}
-      <header style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '20px',
-        backgroundColor: 'rgba(0,0,0,0.8)',
-        color: 'white',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100
-      }}>
+      <header className="app-header">
         <button
           onClick={() => setSelectedCase(null)}
-          style={{
-            padding: '10px 20px',
-            borderRadius: '8px',
-            border: 'none',
-            background: '#4a5568',
-            color: 'white',
-            fontWeight: '600',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            visibility: selectedCase ? 'visible' : 'hidden'
-          }}
+          className={`back-button ${selectedCase ? 'visible' : ''}`}
         >
           ← Back to Cases
         </button>
         
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          backgroundColor: 'rgba(255,255,255,0.2)',
-          padding: '10px 20px',
-          borderRadius: '20px',
-          fontSize: '18px'
-        }}>
+        <div className="coin-display">
           {coins}🪙
         </div>
       </header>
 
-      <main>
+      <main className="main-content">
         {!selectedCase ? (
-          <div className='cases-container'>
+          <div className="cases-container">
             {cases.map((c) => (
               <div 
                 key={c.id}
-                className='case-card'
+                className="case-card"
                 onClick={() => setSelectedCase(c)}
               >
                 <img
-                  className='case-image'
+                  className="case-image"
                   src={c.image} 
                   alt={c.name} 
                 />
@@ -153,20 +122,14 @@ function App() {
       </main>
 
       {/* Footer */}
-      <footer style={{
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        color: '#aaa',
-        padding: '12px',
-        fontSize: '12px',
-        textAlign: 'center',
-      }}>
+      <footer className="app-footer">
         <div>
           This website is not affiliated with or endorsed by Valve Corporation. 
           Counter-Strike, Counter-Strike 2, CS2, and all associated logos, 
           characters, designs, and images are trademarks and/or copyright 
           material of Valve Corporation. All rights reserved.
         </div>
-        <div style={{ marginTop: '8px' }}>
+        <div className="footer-secondary">
           All in-game content depictions are the intellectual property of their 
           respective owners and are used here for educational/fan purposes only.
         </div>
