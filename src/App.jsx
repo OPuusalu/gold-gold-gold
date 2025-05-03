@@ -78,8 +78,8 @@
     }
 
     return (
-      <div style={{ height: '100%', padding: '20px' }}>
-        <div style={{ 
+      <div>
+        <div style={{
           position: 'fixed',
           top: 30,
           right: 30,
@@ -97,20 +97,15 @@
         </div>
         
         {!selectedCase ? (
-          <div style={{
-            alignItems: 'center',
-            gap: '20px',
-            display: 'flex'
-          }}>
+          <div className='cases-container'>
             {cases.map((c) => (
               <div 
                 key={c.id}
-                style={{
-                  cursor: 'pointer'
-                }}
+                className='case-card'
                 onClick={() => setSelectedCase(c)}
               >
-                <img 
+                <img
+                  className='case-image'
                   src={c.image} 
                   alt={c.name} 
                 />

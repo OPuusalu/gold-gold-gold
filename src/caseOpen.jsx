@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { fetchRandomItem } from "./api/caseApi";
-import { CASE_CONFIG } from "./models/caseConfiguration"
+import { CASE_CONFIG } from "./models/caseConfiguration";
 
 const randomInRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -22,7 +22,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
         const abortController = new AbortController();
 
         const generateInitialPaths = async () => {
-            try{
+            try {
                 const initialPaths = await Promise.all(
                     Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, async (_, index) => {
                         const randomItemData = await fetchRandomItem(caseData.items);
@@ -69,11 +69,10 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
         const newItems = generateItems(winningItem, currentPaths);
         setState(prev => ({ ...prev, renderedItems: newItems }));
         
-        const rewardPosition = CASE_CONFIG.REWARD_INDEX * (CASE_CONFIG.ITEM_WIDTH + 2 * CASE_CONFIG.ITEM_MARGIN) + CASE_CONFIG.ITEM_WIDTH;
+        const rewardPosition = CASE_CONFIG.REWARD_INDEX * (CASE_CONFIG.ITEM_WIDTH) + 2 * CASE_CONFIG.ITEM_WIDTH;
         const containerCenter = CASE_CONFIG.CONTAINER_WIDTH / 2;
         const itemCenterOffset = CASE_CONFIG.ITEM_WIDTH / 2;
         
-        // Set random variation range (±40px)
         const VARIATION = CASE_CONFIG.ITEM_WIDTH * 0.4;
         
         const randomEndXpos = randomInRange(
@@ -112,7 +111,8 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
             style={{
                 display: 'flex',
                 overflow: 'hidden',
-                width: CASE_CONFIG.CONTAINER_WIDTH,
+                width: '100%',
+                minWidth: CASE_CONFIG.ITEM_WIDTH * 6,
                 background: 'linear-gradient(145deg, #ffffff, #f1f5f9)',
                 borderRadius: '16px',
                 position: 'relative',
@@ -127,9 +127,8 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                 style={{
                     position: 'absolute',
                     left: '50%',
-                    transform: 'translateX(-50%)',
-                    top: '10%',
-                    bottom: '10%',
+                    top: '7%',
+                    bottom: '7%',
                     width: '3px',
                     background: 'linear-gradient(to bottom, #ff0000, #cc0000)',
                     zIndex: 2,
@@ -166,6 +165,8 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
             style={{
               width: CASE_CONFIG.ITEM_WIDTH,
               height: CASE_CONFIG.ITEM_WIDTH,
+              minWidth: '60px',
+              aspectRatio: '1/1',
               backgroundImage: `url(${
                 index === CASE_CONFIG.REWARD_INDEX 
                   ? winningItem.Path 
@@ -187,7 +188,6 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
         ));
       }, [
         CASE_CONFIG.TOTAL_ITEMS,
-        CASE_CONFIG.ITEM_WIDTH,
         CASE_CONFIG.REWARD_INDEX,
         CASE_CONFIG.ITEM_MARGIN
       ]);
@@ -197,23 +197,25 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
             id="page-container"
             style={{ 
                 position: 'relative',
-                padding: '2rem',
                 fontFamily: "'Inter', sans-serif",
-                background: 'linear-gradient(to bottom right, #f8f9fa, #e9ecef)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                minHeight: '100vh',
+                minWidth: '1200px',
+                boxSizing: 'border-box',
+                overflowX: 'hidden'
             }}
         >
             <button
                 onClick={onBack}
                 style={{
                     position: 'absolute',
-                    top: '20px',
+                    top: '30px',
                     left: '20px',
                     padding: '12px 24px',
-                    borderRadius: '8px',
+                    borderRadius: '10px',
                     border: 'none',
                     background: '#4a5568',
                     color: 'white',
@@ -233,23 +235,13 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
             <div 
                 id="main-container"
                 style={{
-                    border: '3px solid #e2e8f0',
-                    borderRadius: '16px',
-                    backgroundColor: 'rgba(255,255,255,0.9)',
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-                    padding: '24px',
-                    width: '90vw',
                     maxWidth: '1200px',
-                    minHeight: '400px',
-                    minWidth: CASE_CONFIG.ITEM_WIDTH * (CASE_CONFIG.VISIBLE_ITEMS - 1),
-                    boxSizing: 'border-box',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    borderRadius: '8px',
                     backdropFilter: 'blur(12px)',
-                    marginTop: '3rem',
                     position: 'relative',
-                    overflow: 'hidden',
                     ':before': {
                         content: '""',
                         position: 'absolute',
@@ -282,18 +274,16 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                 )}
             </div>
             
-            <div style={{ 
-                position: 'relative',
-                width: '100%',
-                maxWidth: '1200px',
-                textAlign: 'center',
-                padding: '1.5rem',
-                background: 'rgba(255,255,255,0.95)',
-                borderRadius: '8px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                border: '2px solid #e2e8f0',
-                margin: '1rem 0',
-                zIndex: 3
+            <div id='win-text-container'
+                style={{ 
+                    position: 'relative',
+                    width: '100%',
+                    maxWidth: '1200px',
+                    textAlign: 'center',
+                    padding: '1.5rem',
+                    borderRadius: '8px',
+                    margin: '1rem 0',
+                    zIndex: 3
             }}>
                 <motion.h2 
                     initial={{ opacity: 0, y: 10 }}
