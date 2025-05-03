@@ -5,6 +5,14 @@ import { CASE_CONFIG } from "./models/caseConfiguration";
 
 const randomInRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
+const RARITY_COLORS = {
+  'MIL-SPEC': '#4b69ff',
+  'RESTRICTED': '#8847ff',
+  'CLASSIFIED': '#d32ce6',
+  'COVERT': '#eb4b4b',
+  'GOLD': '#ffd700'
+};
+
 export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
     const [state, setState] = useState({
         renderedItems: [],
@@ -68,17 +76,17 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
         const winningItem = await fetchRandomItem(caseData.items);
         const newItems = generateItems(winningItem, currentPaths);
         setState(prev => ({ ...prev, renderedItems: newItems }));
-        
-        const rewardPosition = CASE_CONFIG.REWARD_INDEX * (CASE_CONFIG.ITEM_WIDTH) + 2 * CASE_CONFIG.ITEM_WIDTH;
-        const containerCenter = CASE_CONFIG.CONTAINER_WIDTH / 2;
-        const itemCenterOffset = CASE_CONFIG.ITEM_WIDTH / 2;
-        
+                
+        // so what's going on here:
+        // 16 is the padding of the items container
+        // Since after the items-container gets placed into the screen in the middle is 3rd item, so
+        // we add 6 times one item margin
+        // next we take 3 off reward item index, for same reason, and then multiply it by item width + 2 times the margin
+        // finally we add half of item width and one margin to get the centre of reward item
+        const rewardItemCentre = 16 + 6 * CASE_CONFIG.ITEM_MARGIN + (CASE_CONFIG.REWARD_INDEX - 3) * (CASE_CONFIG.ITEM_WIDTH + 2 * CASE_CONFIG.ITEM_MARGIN) + CASE_CONFIG.ITEM_WIDTH/2 + CASE_CONFIG.ITEM_MARGIN;
         const VARIATION = CASE_CONFIG.ITEM_WIDTH * 0.4;
-        
-        const randomEndXpos = randomInRange(
-            rewardPosition - containerCenter + itemCenterOffset - VARIATION,
-            rewardPosition - containerCenter + itemCenterOffset + VARIATION
-        );
+
+        const randomEndXpos = randomInRange(rewardItemCentre - VARIATION, rewardItemCentre + VARIATION);
 
         setState(prev => ({ ...prev, xPosition: -randomEndXpos, isCaseOpened: true }));
 
@@ -158,41 +166,108 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
     );
 
     const generateItems = useCallback((winningItem, pathsToUse) => {
-        return Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, (_, index) => (
-          <div
-            key={index}
-            id={`item-${index}`}
-            style={{
-              width: CASE_CONFIG.ITEM_WIDTH,
-              height: CASE_CONFIG.ITEM_WIDTH,
-              minWidth: '60px',
-              aspectRatio: '1/1',
-              backgroundImage: `url(${
-                index === CASE_CONFIG.REWARD_INDEX 
-                  ? winningItem.Path 
-                  : pathsToUse[index] || ''
-              })`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              border: '2px solid #ccc',
-              borderRadius: '5px',
-              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-              margin: `0 ${CASE_CONFIG.ITEM_MARGIN}px`,
-              boxSizing: 'border-box',
-            }}
-          />
-        ));
-      }, [
+        return Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, (_, index) => {
+            const item = index === CASE_CONFIG.REWARD_INDEX ? 
+                winningItem : 
+                caseData.items.find(i => i.Path === pathsToUse[index]);
+            
+            const rarityColor = RARITY_COLORS[item?.Rarity] || '#ccc';
+
+            return (
+                <div
+                    key={index}
+                    id={`item-${index}`}
+                    style={{
+                        width: CASE_CONFIG.ITEM_WIDTH,
+                        height: CASE_CONFIG.ITEM_WIDTH,
+                        minWidth: '60px',
+                        aspectRatio: '1/1',
+                        backgroundImage: `url(${item?.Path || ''})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        border: `2px solid ${rarityColor}`,
+                        borderRadius: '5px',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        overflow: 'hidden',
+                        margin: `0 ${CASE_CONFIG.ITEM_MARGIN}px`,
+                        boxSizing: 'border-box',
+                        position: 'relative',
+                    }}
+                >
+                    {/* Corner indicators */}
+                    <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        border: `2px solid ${rarityColor}`,
+                        borderRadius: '5px',
+                        pointerEvents: 'none',
+                    }}/>
+                    
+                    {/* Top-left corner triangle */}
+                    <div style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        width: 0,
+                        height: 0,
+                        borderTop: '15px solid transparent',
+                        borderLeft: '15px solid transparent',
+                        borderRight: '15px solid transparent',
+                        borderBottom: `15px solid ${rarityColor}`,
+                        transform: 'rotate(-135deg)',
+                        filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.3))'
+                    }}/>
+                    
+                    {/* Bottom-right corner triangle */}
+                    <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        width: 0,
+                        height: 0,
+                        borderTop: '15px solid transparent',
+                        borderLeft: '15px solid transparent',
+                        borderRight: '15px solid transparent',
+                        borderBottom: `15px solid ${rarityColor}`,
+                        transform: 'rotate(45deg)',
+                        filter: 'drop-shadow(0 -2px 2px rgba(0,0,0,0.3))'
+                    }}/>
+
+                    {/* Rarity text label */}
+                    {item?.Rarity && (
+                        <div style={{
+                            position: 'absolute',
+                            bottom: '2px',
+                            right: '2px',
+                            backgroundColor: 'rgba(0,0,0,0.7)',
+                            color: 'white',
+                            padding: '2px 6px',
+                            fontSize: '0.7rem',
+                            borderRadius: '3px',
+                            textTransform: 'uppercase',
+                            fontWeight: 'bold'
+                        }}>
+                            {item.Rarity}
+                        </div>
+                    )}
+                </div>
+            );
+        });
+    }, [
         CASE_CONFIG.TOTAL_ITEMS,
         CASE_CONFIG.REWARD_INDEX,
-        CASE_CONFIG.ITEM_MARGIN
-      ]);
+        CASE_CONFIG.ITEM_MARGIN,
+        CASE_CONFIG.ITEM_WIDTH,
+        caseData.items
+    ]);
 
-      return (
+    return (
         <div
             id="page-container"
             style={{ 
@@ -203,7 +278,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 minHeight: '100vh',
-                minWidth: '1200px',
+                minWidth: 6 * CASE_CONFIG.ITEM_WIDTH,
                 boxSizing: 'border-box',
                 overflowX: 'hidden'
             }}
@@ -235,7 +310,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
             <div 
                 id="main-container"
                 style={{
-                    maxWidth: '1200px',
+                    maxWidth: 6 * CASE_CONFIG.ITEM_WIDTH,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
