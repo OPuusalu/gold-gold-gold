@@ -1,22 +1,59 @@
+/* Reset and base styles */
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-image: url('assets/goldgoldbg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Root container */
 #root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Header styles */
+header {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 20px;
+  box-sizing: border-box;
+  z-index: 100;
+  backdrop-filter: blur(5px);
+}
+
+/* Main content area */
+main {
+  flex: 1;
+  width: 100%;
   max-width: 1280px;
-  text-align: center;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Footer styles */
+footer {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 12px;
+  box-sizing: border-box;
+  margin-top: auto;
+  z-index: 100;
 }
 
-/* Add these styles to your CSS file */
+/* Case container styles */
 .cases-container {
   display: flex;
   justify-content: center;
@@ -24,10 +61,11 @@
   flex-wrap: wrap;
   gap: 30px;
   padding: 20px;
-  min-height: 100vh;
+  min-height: calc(100vh - 200px);
   box-sizing: border-box;
 }
 
+/* Case card styles */
 .case-card {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 16px;
@@ -37,6 +75,7 @@
   text-align: center;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 300px;
 }
 
 .case-card:hover {
@@ -45,21 +84,12 @@
 }
 
 .case-image {
-  width: 300px;
+  width: 100%;
   height: 300px;
   object-fit: contain;
 }
 
-body {
-  margin: 0;
-  display: flex;
-  justify-content: center;
-  min-height: 100vh;
-  background-color: #1a1a2e; /* Dark blue background */
-  color: white;
-  font-family: 'Arial', sans-serif;
-}
-
+/* Animation styles */
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);
@@ -69,12 +99,19 @@ body {
   }
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Media queries */
 @media (prefers-reduced-motion: no-preference) {
   a:nth-of-type(2) .logo {
     animation: logo-spin infinite 20s linear;
   }
 }
 
+/* Utility classes */
 .card {
   padding: 2em;
 }
@@ -83,11 +120,38 @@ body {
   color: #888;
 }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-  background-color: #add8e6; /* Light blue background color */
+/* Button styles */
+.spin-button {
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  background: linear-gradient(145deg, #4f9fd8, #4299e1);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(66, 153, 225, 0.3);
+  margin: 20px 0;
+}
+
+.spin-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(66, 153, 225, 0.4);
+}
+
+.spin-button:disabled {
+  background: #cbd5e0;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Win text container */
+.win-text-container {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1rem auto;
+  max-width: 1280px;
+  text-align: center;
 }

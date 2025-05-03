@@ -14,6 +14,7 @@ const RARITY_COLORS = {
 };
 
 export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
+    const [itemWidth, setItemWidth] = useState(CASE_CONFIG.ITEM_WIDTH());
     const [state, setState] = useState({
         renderedItems: [],
         xPosition: 0,
@@ -24,6 +25,16 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
         nextPaths: []
     });
     const animationKey = useRef(0);
+
+
+    useEffect(() => {
+        const handleResize = () => {
+          setItemWidth(CASE_CONFIG.ITEM_WIDTH());
+        };
+        
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+      }, []);
 
     // Generate initial paths when component mounts
     useEffect(() => {
@@ -83,8 +94,8 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
         // we add 6 times one item margin
         // next we take 3 off reward item index, for same reason, and then multiply it by item width + 2 times the margin
         // finally we add half of item width and one margin to get the centre of reward item
-        const rewardItemCentre = 16 + 6 * CASE_CONFIG.ITEM_MARGIN + (CASE_CONFIG.REWARD_INDEX - 3) * (CASE_CONFIG.ITEM_WIDTH + 2 * CASE_CONFIG.ITEM_MARGIN) + CASE_CONFIG.ITEM_WIDTH/2 + CASE_CONFIG.ITEM_MARGIN;
-        const VARIATION = CASE_CONFIG.ITEM_WIDTH * 0.4;
+        const rewardItemCentre = 16 + 6 * CASE_CONFIG.ITEM_MARGIN + (CASE_CONFIG.REWARD_INDEX - 3) * (itemWidth + 2 * CASE_CONFIG.ITEM_MARGIN) + itemWidth/2 + CASE_CONFIG.ITEM_MARGIN;
+        const VARIATION = itemWidth * 0.4;
 
         const randomEndXpos = randomInRange(rewardItemCentre - VARIATION, rewardItemCentre + VARIATION);
 
@@ -120,14 +131,13 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                 display: 'flex',
                 overflow: 'hidden',
                 width: '100%',
-                minWidth: CASE_CONFIG.ITEM_WIDTH * 6,
-                background: 'linear-gradient(145deg, #ffffff, #f1f5f9)',
+                minWidth: itemWidth * 6,
                 borderRadius: '16px',
                 position: 'relative',
                 padding: '16px',
                 boxSizing: 'border-box',
                 boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)',
-                border: '2px solid #e2e8f0'
+                border: '2px solidrgb(0, 0, 0)'
             }}
         >
             <div 
@@ -147,8 +157,8 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
             <motion.div
                 style={{
                     display: 'flex',
-                    width: CASE_CONFIG.TOTAL_ITEMS * (CASE_CONFIG.ITEM_WIDTH + CASE_CONFIG.ITEM_MARGIN * 2),
-                    height: CASE_CONFIG.ITEM_WIDTH,
+                    width: CASE_CONFIG.TOTAL_ITEMS * (itemWidth + CASE_CONFIG.ITEM_MARGIN * 2),
+                    height: itemWidth,
                     position: 'relative',
                     zIndex: 1,
                     alignItems: 'center'
@@ -178,8 +188,8 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                     key={index}
                     id={`item-${index}`}
                     style={{
-                        width: CASE_CONFIG.ITEM_WIDTH,
-                        height: CASE_CONFIG.ITEM_WIDTH,
+                        width: itemWidth,
+                        height: itemWidth,
                         minWidth: '60px',
                         aspectRatio: '1/1',
                         backgroundImage: `url(${item?.Path || ''})`,
@@ -263,7 +273,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
         CASE_CONFIG.TOTAL_ITEMS,
         CASE_CONFIG.REWARD_INDEX,
         CASE_CONFIG.ITEM_MARGIN,
-        CASE_CONFIG.ITEM_WIDTH,
+        itemWidth,
         caseData.items
     ]);
 
@@ -278,42 +288,20 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 minHeight: '100vh',
-                minWidth: 6 * CASE_CONFIG.ITEM_WIDTH,
+                minWidth: 6 * itemWidth,
                 boxSizing: 'border-box',
                 overflowX: 'hidden'
             }}
-        >
-            <button
-                onClick={onBack}
-                style={{
-                    position: 'absolute',
-                    top: '30px',
-                    left: '20px',
-                    padding: '12px 24px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    background: '#4a5568',
-                    color: 'white',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                    ':hover': {
-                        background: '#2d3748',
-                        transform: 'translateY(-1px)'
-                    }
-                }}
-            >
-                ← Back to Cases
-            </button>
-            
+        >   
             <div 
                 id="main-container"
                 style={{
-                    maxWidth: 6 * CASE_CONFIG.ITEM_WIDTH,
+                    maxWidth: 6 * itemWidth,
                     display: 'flex',
+                    marginTop: '90px',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.15))',
                     borderRadius: '8px',
                     backdropFilter: 'blur(12px)',
                     position: 'relative',
@@ -321,7 +309,6 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                         content: '""',
                         position: 'absolute',
                         inset: 0,
-                        background: 'linear-gradient(45deg, #f8fafc 0%, #f1f5f9 100%)',
                         opacity: 0.6,
                         zIndex: 0
                     }
@@ -353,13 +340,13 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                 style={{ 
                     position: 'relative',
                     width: '100%',
-                    maxWidth: '1200px',
                     textAlign: 'center',
                     padding: '1.5rem',
+                    maxWidth: 6 * itemWidth,
                     borderRadius: '8px',
                     margin: '1rem 0',
-                    zIndex: 3
-            }}>
+                    zIndex: 3,
+                }}>
                 <motion.h2 
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ 
@@ -369,16 +356,22 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                     transition={{ duration: 0.2 }}
                     style={{ 
                         margin: 0,
-                        fontSize: '1.8rem',
-                        color: '#2d3748',
+                        fontSize: 'clamp(1rem, 4vw, 1.5rem)',
+                        color: 'white',
                         fontWeight: '700',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '12px'
+                        gap: '12px',
+                        flexWrap: 'wrap' // Allow wrapping on small screens
                     }}
                 >
-                    <span style={{ color: '#48bb78', fontSize: '2rem' }}>🎉</span>
+                    <span style={{ 
+                        color: '#48bb78', 
+                        fontSize: 'clamp(1.5rem, 6vw, 2.5rem)' // Responsive emoji size
+                    }}>
+                        🎉
+                    </span>
                     {state.description.text}
                 </motion.h2>
             </div>
@@ -389,36 +382,68 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                 disabled={state.isOpening || coins < caseData.price} 
                 style={{ 
                     margin: '2rem 0',
-                    padding: '1.5rem 3rem',
-                    fontSize: '1.4rem',
+                    padding: '1rem 2rem',
+                    fontSize: 'clamp(1rem, 4vw, 1.5rem)',
                     fontWeight: '700',
-                    background: state.isOpening ? '#cbd5e0' : '#4299e1',
+                    background: state.isOpening 
+                    ? 'linear-gradient(145deg, #e2e8f0, #cbd5e0)' 
+                    : 'linear-gradient(145deg,rgb(56, 56, 56),rgb(62, 72, 81))',
                     color: 'white',
                     border: 'none',
                     borderRadius: '12px',
                     cursor: 'pointer',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     boxShadow: state.isOpening 
-                        ? 'none' 
-                        : '0 4px 6px -1px rgba(66, 153, 225, 0.3), 0 2px 4px -1px rgba(66, 153, 225, 0.2)',
+                    ? '0 2px 4px rgba(0,0,0,0.1)' 
+                    : '0 4px 6px -1px rgba(17, 17, 17, 0.3), 0 2px 4px -1px rgba(21, 31, 39, 0.2)',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                    position: 'relative',
+                    overflow: 'hidden',
                     ':hover:not(:disabled)': {
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 10px 15px -3px rgba(66, 153, 225, 0.3), 0 4px 6px -2px rgba(66, 153, 225, 0.2)'
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 10px 15px -3px rgba(66, 153, 225, 0.3), 0 4px 6px -2px rgba(66, 153, 225, 0.2)'
                     },
                     ':active:not(:disabled)': {
-                        transform: 'translateY(0)'
+                    transform: 'translateY(0)'
+                    },
+                    ':disabled': {
+                    opacity: 0.7,
+                    cursor: 'not-allowed'
+                    },
+                    ':before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '30%',
+                    background: 'rgba(255,255,255,0.2)',
+                    borderRadius: '12px 12px 0 0'
                     }
                 }}
-            >
+                >
                 {state.isOpening ? (
-                    <span style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                        <span style={{ animation: 'spin 1s linear infinite' }}>🌀</span>
-                        Spinning...
+                    <span style={{ 
+                    display: 'flex', 
+                    gap: '12px', 
+                    alignItems: 'center',
+                    position: 'relative',
+                    zIndex: 1
+                    }}>
+                    <span style={{ 
+                        animation: 'spin 1s linear infinite',
+                        filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.3))'
+                    }}>
+                        🌀
+                    </span>
+                    Spinning...
                     </span>
                 ) : (
-                    `SPIN (${caseData.price}🪙)`
+                    <span style={{ position: 'relative', zIndex: 1 }}>
+                    SPIN ({caseData.price}🪙)
+                    </span>
                 )}
-            </button>
+                </button>
         </div>
     );
 }
