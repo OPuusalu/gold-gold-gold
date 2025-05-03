@@ -6,14 +6,15 @@ import { CASE_CONFIG } from "./models/caseConfiguration"
 const randomInRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
-    const [renderedItems, setRenderedItems] = useState([]); // State for rendered items
-    const [xPosition, setXPosition] = useState(0);
-    const [isCaseOpened, setIsCaseOpened] = useState(false); // New state to track if the case has been opened
-    const [itemDescription, setItemDescription] = useState(''); // New state for item description
-    const [showDescription, setShowDescription] = useState(false); // State to control description visibility
-    const [isOpening, setIsOpening] = useState(false); // New state for opening status
-    const [paths, setPaths] = useState([]);
-    const [nextPaths, setNextPaths] = useState([]); // New state for next spin's paths
+    const [state, setState] = useState({
+        renderedItems: [],
+        xPosition: 0,
+        isCaseOpened: false,
+        description: { text: '', visible: false },
+        isOpening: false,
+        paths: [],
+        nextPaths: []
+    });
     const animationKey = useRef(0);
 
     // Generate initial paths when component mounts
@@ -25,61 +26,66 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                     return randomItemData ? randomItemData.Path : '';
                 })
             );
-            setPaths(initialPaths);
             
-            // Also generate paths for the next spin
             const nextSpinPaths = await Promise.all(
                 Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, async (_, index) => {
                     const randomItemData = await fetchRandomItem(caseData.items);
                     return randomItemData ? randomItemData.Path : '';
                 })
             );
-            setNextPaths(nextSpinPaths);
+
+            setState(prev => ({
+                ...prev,
+                paths: initialPaths,
+                nextPaths: nextSpinPaths
+            }));
         };
         
         generateInitialPaths();
-    }, [caseData]); // Regenerate when caseData changes
+    }, [caseData]);
 
     const openCase = async () => {
         if (coins < caseData.price) return;
 
         animationKey.current += 1;
-        setXPosition(0);
+        setState(prev => ({ ...prev, xPosition: 0 }));
         
-        resetView();
-        setIsOpening(true);
+        // Reset view
+        setState(prev => ({ ...prev, description: { ...prev.description, visible: false } }));
+        setState(prev => ({ ...prev, isOpening: true }));
         setCoins(c => c - caseData.price);
         
-        const currentPaths = [...paths];
+        const currentPaths = [...state.paths];
         const winningItem = await fetchRandomItem(caseData.items);
-        const newItems = generateItems(winningItem, currentPaths); // Generate new items with current paths
-        setRenderedItems(newItems); // Set the rendered items state after getting the item
+        const newItems = generateItems(winningItem, currentPaths);
+        setState(prev => ({ ...prev, renderedItems: newItems }));
         
-        const randomEndXpos = randomInRange(CASE_CONFIG.REWARD_INDEX * CASE_CONFIG.ITEM_WIDTH - 120, CASE_CONFIG.REWARD_INDEX * CASE_CONFIG.ITEM_WIDTH - 20);
-        setXPosition(-randomEndXpos);
-        setIsCaseOpened(true); // Update state to indicate the case has been opened
+        const randomEndXpos = randomInRange(
+            CASE_CONFIG.REWARD_INDEX * CASE_CONFIG.ITEM_WIDTH - 120,
+            CASE_CONFIG.REWARD_INDEX * CASE_CONFIG.ITEM_WIDTH - 20
+        );
+        setState(prev => ({ ...prev, xPosition: -randomEndXpos, isCaseOpened: true }));
 
-        // Generate paths for next spin while current spin is happening
         const newNextPaths = await Promise.all(
             Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, async (_, index) => {
                 const randomItemData = await fetchRandomItem(caseData.items);
                 return randomItemData ? randomItemData.Path : '';
             })
         );
-        setNextPaths(newNextPaths);
+        setState(prev => ({ ...prev, nextPaths: newNextPaths }));
 
-        // Set item description after 3 seconds
         setTimeout(() => {
             const description = `You won ${winningItem.Name} ( ${winningItem.Value > 0 ? `+${winningItem.Value}🪙` : ''} )`;
-            setItemDescription(description);
-            setShowDescription(true);
-            setIsOpening(false);
+            setState(prev => ({
+                ...prev,
+                description: { text: description, visible: true },
+                isOpening: false,
+                paths: [...prev.nextPaths]
+            }));
+            
             if(winningItem.Value > 0) {
                 setCoins(c => c + winningItem.Value);
             }
-            
-            // Update paths for next spin
-            setPaths([...nextPaths]);
         }, 3000);
     };
 
@@ -119,13 +125,13 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                     zIndex: 1,
                 }}
                 key={animationKey.current}
-                animate={{ x: xPosition }}
+                animate={{ x: state.xPosition }}
                 transition={{ 
                     duration: CASE_CONFIG.ANIMATION_DURATION,
                     ease: 'easeOut'
                  }}
             >
-                {renderedItems}
+                {state.renderedItems}
             </motion.div>
         </div>
     );
@@ -159,10 +165,6 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
         return newItems; // Return the array of animated JSX elements
     };
 
-    const resetView = () => {
-        setShowDescription(false);
-    };
-
     return (
         <div
             id="page-container"
@@ -192,7 +194,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                     justifyContent: 'center',
                 }}
             >
-                {!isCaseOpened ? (
+                {!state.isCaseOpened ? (
                     <img 
                         src={caseData.image} 
                         alt={caseData.name} 
@@ -219,18 +221,18 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
             }}>
                 <motion.h2 
                     initial={{ opacity: 0 }} 
-                    animate={{ opacity: showDescription ? 1 : 0 }} 
-                    transition={{ duration: showDescription ? 0.1 : 0 }}
+                    animate={{ opacity: state.description.visible ? 1 : 0 }} 
+                    transition={{ duration: state.description.visible ? 0.1 : 0 }}
                     style={{ margin: 0 }}
                 >
-                    {itemDescription}
+                    {state.description.text}
                 </motion.h2>
             </div>
 
             <button 
                 type="button" 
                 onClick={openCase} 
-                disabled={isOpening || coins < caseData.price} 
+                disabled={state.isOpening || coins < caseData.price} 
                 style={{ marginTop: '10px', position: 'relative' }}
             >
                 SPIN ({caseData.price}🪙)
