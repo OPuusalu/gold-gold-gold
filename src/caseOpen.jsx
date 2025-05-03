@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { fetchRandomItem } from "./api/caseApi";
 import { CASE_CONFIG } from "./models/caseConfiguration"
@@ -19,29 +19,38 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
 
     // Generate initial paths when component mounts
     useEffect(() => {
-        const generateInitialPaths = async () => {
-            const initialPaths = await Promise.all(
-                Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, async (_, index) => {
-                    const randomItemData = await fetchRandomItem(caseData.items);
-                    return randomItemData ? randomItemData.Path : '';
-                })
-            );
-            
-            const nextSpinPaths = await Promise.all(
-                Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, async (_, index) => {
-                    const randomItemData = await fetchRandomItem(caseData.items);
-                    return randomItemData ? randomItemData.Path : '';
-                })
-            );
+        const abortController = new AbortController();
 
-            setState(prev => ({
-                ...prev,
-                paths: initialPaths,
-                nextPaths: nextSpinPaths
-            }));
+        const generateInitialPaths = async () => {
+            try{
+                const initialPaths = await Promise.all(
+                    Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, async (_, index) => {
+                        const randomItemData = await fetchRandomItem(caseData.items);
+                        return randomItemData ? randomItemData.Path : '';
+                    })
+                );
+                
+                const nextSpinPaths = await Promise.all(
+                    Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, async (_, index) => {
+                        const randomItemData = await fetchRandomItem(caseData.items);
+                        return randomItemData ? randomItemData.Path : '';
+                    })
+                );
+
+                setState(prev => ({
+                    ...prev,
+                    paths: initialPaths,
+                    nextPaths: nextSpinPaths
+                }));
+            } catch (err) {
+                if (!abortController.signal.aborted) {
+                    console.error('Failed to load paths ', err);
+                }
+            }
         };
         
         generateInitialPaths();
+        return () => abortController.abort();
     }, [caseData]);
 
     const openCase = async () => {
@@ -136,34 +145,39 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
         </div>
     );
 
-    const generateItems = (winningItem, pathsToUse) => {
-        const newItems = Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, (_, index) => (
-            <div
-                key={index}
-                id={`item-${index}`}
-                style={{
-                width: CASE_CONFIG.ITEM_WIDTH,
-                height: CASE_CONFIG.ITEM_WIDTH,
-                backgroundImage:
-                    index === CASE_CONFIG.REWARD_INDEX
-                    ? `url(${winningItem.Path})`
-                    : `url(${pathsToUse[index] || ''})`, // Use the provided paths
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                border: '2px solid #ccc',
-                borderRadius: '5px',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden',
-                margin: `0 ${CASE_CONFIG.ITEM_MARGIN}px`,
-                boxSizing: 'border-box',
-                }}
-            />
-        ));        
-        return newItems; // Return the array of animated JSX elements
-    };
+    const generateItems = useCallback((winningItem, pathsToUse) => {
+        return Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, (_, index) => (
+          <div
+            key={index}
+            id={`item-${index}`}
+            style={{
+              width: CASE_CONFIG.ITEM_WIDTH,
+              height: CASE_CONFIG.ITEM_WIDTH,
+              backgroundImage: `url(${
+                index === CASE_CONFIG.REWARD_INDEX 
+                  ? winningItem.Path 
+                  : pathsToUse[index] || ''
+              })`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              border: '2px solid #ccc',
+              borderRadius: '5px',
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              margin: `0 ${CASE_CONFIG.ITEM_MARGIN}px`,
+              boxSizing: 'border-box',
+            }}
+          />
+        ));
+      }, [
+        CASE_CONFIG.TOTAL_ITEMS,
+        CASE_CONFIG.ITEM_WIDTH,
+        CASE_CONFIG.REWARD_INDEX,
+        CASE_CONFIG.ITEM_MARGIN
+      ]);
 
     return (
         <div
