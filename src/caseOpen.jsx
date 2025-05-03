@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { CaseItem } from "./models/CaseItem";
+import { fetchRandomItem } from "./api/caseApi";
 
 const PORT = import.meta.env.VITE_API_PORT; // for Vite
 
@@ -29,7 +29,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
         const generateInitialPaths = async () => {
             const initialPaths = await Promise.all(
                 Array.from({ length: totalItems }, async (_, index) => {
-                    const randomItemData = await randomItem();
+                    const randomItemData = await fetchRandomItem(caseData.items);
                     return randomItemData ? randomItemData.Path : '';
                 })
             );
@@ -38,7 +38,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
             // Also generate paths for the next spin
             const nextSpinPaths = await Promise.all(
                 Array.from({ length: totalItems }, async (_, index) => {
-                    const randomItemData = await randomItem();
+                    const randomItemData = await fetchRandomItem(caseData.items);
                     return randomItemData ? randomItemData.Path : '';
                 })
             );
@@ -57,7 +57,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
         setIsOpening(true);
         resetView();
         
-        const winningItem = await randomItem();
+        const winningItem = await fetchRandomItem(caseData.items);
         const newItems = generateItems(winningItem, currentPaths); // Generate new items with current paths
         setRenderedItems(newItems); // Set the rendered items state after getting the item
         
@@ -68,7 +68,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
         // Generate paths for next spin while current spin is happening
         const newNextPaths = await Promise.all(
             Array.from({ length: totalItems }, async (_, index) => {
-                const randomItemData = await randomItem(); // true for filler items only
+                const randomItemData = await fetchRandomItem(caseData.items);
                 return randomItemData ? randomItemData.Path : '';
             })
         );
@@ -169,28 +169,6 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
         ));        
         return newItems; // Return the array of animated JSX elements
     };
-
-    const randomItem = async () => {
-        const response = await fetch('http://localhost:4445/api/random-item', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-                items: caseData.items
-            }),
-        });
-    
-        if (!response.ok) {
-            console.error('Failed to fetch random item:', await response.text());
-            return null;
-        }
-    
-        const data = await response.json();
-        const caseItem = new CaseItem(data.Name, data.Path, data.Value, data.Rarity);
-
-        return caseItem;
-    };    
 
     const resetView = () => {
         setShowDescription(false);
