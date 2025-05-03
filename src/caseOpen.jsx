@@ -7,7 +7,6 @@ const randomInRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) 
 
 export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
     const [renderedItems, setRenderedItems] = useState([]); // State for rendered items
-    const [animationElement, setAnimationElement] = useState(null);
     const [xPosition, setXPosition] = useState(0);
     const [isCaseOpened, setIsCaseOpened] = useState(false); // New state to track if the case has been opened
     const [itemDescription, setItemDescription] = useState(''); // New state for item description
@@ -15,6 +14,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
     const [isOpening, setIsOpening] = useState(false); // New state for opening status
     const [paths, setPaths] = useState([]);
     const [nextPaths, setNextPaths] = useState([]); // New state for next spin's paths
+    const animationKey = useRef(0);
 
     // Generate initial paths when component mounts
     useEffect(() => {
@@ -42,13 +42,15 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
 
     const openCase = async () => {
         if (coins < caseData.price) return;
-        setCoins(c => c - caseData.price);
 
-        // Use current paths for this spin
-        const currentPaths = [...paths];
-        setIsOpening(true);
-        resetView();
+        animationKey.current += 1;
+        setXPosition(0);
         
+        resetView();
+        setIsOpening(true);
+        setCoins(c => c - caseData.price);
+        
+        const currentPaths = [...paths];
         const winningItem = await fetchRandomItem(caseData.items);
         const newItems = generateItems(winningItem, currentPaths); // Generate new items with current paths
         setRenderedItems(newItems); // Set the rendered items state after getting the item
@@ -81,57 +83,52 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
         }, 3000);
     };
 
-    useEffect(() => {
-        if (renderedItems.length > 0) {
-            generateAnimation();
-        }
-    }, [renderedItems]); // Re-run animation generation when renderedItems change
-
-    const generateAnimation = () => {
-        const animation = (
+    const renderAnimation = () => (
+        <div 
+            id="items-container" 
+            style={{
+                display: 'flex',
+                overflow: 'hidden',
+                width: CASE_CONFIG.CONTAINER_WIDTH,
+                backgroundColor: '#f0f0f0',
+                borderRadius: '10px',
+                position: 'relative',
+                padding: '10px',
+                boxSizing: 'border-box',
+            }}
+        >
             <div 
-                id="items-container" 
+                id="red-line"
+                style={{
+                    position: 'absolute',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    top: 0,
+                    bottom: 0,
+                    width: '2px',
+                    backgroundColor: 'red',
+                    zIndex: 2,
+                }}
+            />
+            <motion.div
                 style={{
                     display: 'flex',
-                    overflow: 'hidden',
-                    width: CASE_CONFIG.CONTAINER_WIDTH,
-                    backgroundColor: '#f0f0f0',
-                    borderRadius: '10px',
+                    width: CASE_CONFIG.TOTAL_ITEMS * (CASE_CONFIG.ITEM_WIDTH + CASE_CONFIG.ITEM_MARGIN * 2),
+                    height: CASE_CONFIG.ITEM_WIDTH,
                     position: 'relative',
-                    padding: '10px',
-                    boxSizing: 'border-box',
+                    zIndex: 1,
                 }}
+                key={animationKey.current}
+                animate={{ x: xPosition }}
+                transition={{ 
+                    duration: CASE_CONFIG.ANIMATION_DURATION,
+                    ease: 'easeOut'
+                 }}
             >
-                <div 
-                    id="red-line"
-                    style={{
-                        position: 'absolute',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        top: 0,
-                        bottom: 0,
-                        width: '2px',
-                        backgroundColor: 'red',
-                        zIndex: 2,
-                    }}
-                />
-                    <motion.div
-                        style={{
-                            display: 'flex',
-                            width: CASE_CONFIG.TOTAL_ITEMS * (CASE_CONFIG.ITEM_WIDTH + CASE_CONFIG.ITEM_MARGIN * 2),
-                            height: CASE_CONFIG.ITEM_WIDTH,
-                            position: 'relative',
-                            zIndex: 1,
-                        }}
-                        animate={{ x: xPosition }} // Use xPosition for animation
-                        transition={{ duration: CASE_CONFIG.ANIMATION_DURATION }} // Animation duration
-                    >
-                        {renderedItems} {/* Render the items from the state */}
-                    </motion.div>
-                </div>
-            );
-            setAnimationElement(animation);
-        };
+                {renderedItems}
+            </motion.div>
+        </div>
+    );
 
     const generateItems = (winningItem, pathsToUse) => {
         const newItems = Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, (_, index) => (
@@ -164,8 +161,6 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
 
     const resetView = () => {
         setShowDescription(false);
-        setRenderedItems([]); // Clear rendered items to show an empty screen
-        setAnimationElement(null);
     };
 
     return (
@@ -209,7 +204,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                         }} 
                     />
                 ) : (
-                    animationElement
+                    renderAnimation()
                 )}
             </div>
             
