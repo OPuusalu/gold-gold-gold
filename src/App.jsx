@@ -6,7 +6,7 @@
 
   function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(null);
-    const [coins, setCoins] = useState(100);
+    const [coins, setCoins] = useState(1000);
     const [selectedCase, setSelectedCase] = useState(null);
 
     useEffect(() => {

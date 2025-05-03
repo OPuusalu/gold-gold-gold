@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+import { CaseItem } from "./models/CaseItem";
+
+const PORT = import.meta.env.VITE_API_PORT; // for Vite
 
 const itemWidth = 100; // px
 const itemMargin = 5; // px
@@ -18,28 +21,39 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
     const [itemDescription, setItemDescription] = useState(''); // New state for item description
     const [showDescription, setShowDescription] = useState(false); // State to control description visibility
     const [isOpening, setIsOpening] = useState(false); // New state for opening status
+    const [paths, setPaths] = useState([]);
 
-    const openCase = () => {
+    const openCase = async () => {
         if (coins < caseData.price) return;
         setCoins(c => c - caseData.price);
+
+        const itemPaths = await Promise.all(
+            Array.from({ length: totalItems }, async (_, index) => {
+              const randomItemData = await randomItem();
+              return randomItemData ? randomItemData.Path : '';
+            })
+          );
+      
+        setPaths(itemPaths);
         setIsOpening(true);
         resetView();
         
-        const winningItem = randomItem();
+        const winningItem = await randomItem(); // Wait for randomItem to resolve
         const newItems = generateItems(winningItem); // Generate new items
-        setRenderedItems(newItems); // Set the rendered items state
+        setRenderedItems(newItems); // Set the rendered items state after getting the item
+        
         const randomEndXpos = randomInRange(rewardItemIndex * itemWidth - 120, rewardItemIndex * itemWidth - 20);
         setXPosition(-randomEndXpos);
         setIsCaseOpened(true); // Update state to indicate the case has been opened
 
         // Set item description after 3 seconds
         setTimeout(() => {
-            const description = `You won ${winningItem.name} ( ${winningItem.value > 0 ? `+${winningItem.value}🪙` : ''} )`;
+            const description = `You won ${winningItem.Name} ( ${winningItem.Value > 0 ? `+${winningItem.Value}🪙` : ''} )`;
             setItemDescription(description);
             setShowDescription(true);
             setIsOpening(false);
-            if(winningItem.value > 0) {
-              setCoins(c => c + winningItem.value);
+            if(winningItem.Value > 0) {
+              setCoins(c => c + winningItem.Value);
             }
         }, 3000);
     };
@@ -48,9 +62,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
         if (renderedItems.length > 0) {
             generateAnimation();
         }
-    }, [renderedItems]);
-    
-    
+    }, [renderedItems]); // Re-run animation generation when renderedItems change
 
     const generateAnimation = () => {
         const animation = (
@@ -104,40 +116,48 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                 key={index}
                 id={`item-${index}`}
                 style={{
-                    width: itemWidth,
-                    height: itemWidth,
-                    backgroundImage: index === rewardItemIndex ? `url(${winningItem.path})` : `url(${randomItem().path})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    border: '2px solid #ccc',
-                    borderRadius: '5px',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    overflow: 'hidden',
-                    margin: `0 ${itemMargin}px`,
-                    boxSizing: 'border-box',
+                width: itemWidth,
+                height: itemWidth,
+                backgroundImage:
+                    index === rewardItemIndex
+                    ? `url(${winningItem.Path})`
+                    : `url(${paths[index] || ''})`, // Use the paths stored in the state
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                border: '2px solid #ccc',
+                borderRadius: '5px',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                margin: `0 ${itemMargin}px`,
+                boxSizing: 'border-box',
                 }}
             />
         ));        
         return newItems; // Return the array of animated JSX elements
     };
 
-    const randomItem = () => {
-        const random = Math.random();
-        if (random < 0.5) {
-            return caseData.items.filter(item => item.rarity === 'MIL-SPEC')[Math.floor(Math.random() * caseData.items.filter(item => item.rarity === 'MIL-SPEC').length)];
-        } else if (random < 0.8) {
-            return caseData.items.filter(item => item.rarity === 'RESTRICTED')[Math.floor(Math.random() * caseData.items.filter(item => item.rarity === 'RESTRICTED').length)];
-        } else if (random < 0.95) {
-            return caseData.items.filter(item => item.rarity === 'CLASSIFIED')[Math.floor(Math.random() * caseData.items.filter(item => item.rarity === 'CLASSIFIED').length)];
-        } else if (random < 0.99) {
-            return caseData.items.filter(item => item.rarity === 'COVERT')[Math.floor(Math.random() * caseData.items.filter(item => item.rarity === 'COVERT').length)];
-        } else {
-            return caseData.items.filter(item => item.rarity === 'GOLD')[Math.floor(Math.random() * caseData.items.filter(item => item.rarity === 'GOLD').length)];
+    const randomItem = async () => {
+        const response = await fetch('http://localhost:4445/api/random-item', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ items: caseData.items }),
+        });
+    
+        if (!response.ok) {
+            console.error('Failed to fetch random item:', await response.text());
+            return null;
         }
-    };
+    
+        const data = await response.json();
+        const caseItem = new CaseItem(data.Name, data.Path, data.Value, data.Rarity);
+
+        return caseItem;
+    };    
 
     const resetView = () => {
         setShowDescription(false);
