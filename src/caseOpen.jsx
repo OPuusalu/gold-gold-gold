@@ -241,6 +241,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                     width: '90vw',
                     maxWidth: '1200px',
                     minHeight: '400px',
+                    minWidth: CASE_CONFIG.ITEM_WIDTH * (CASE_CONFIG.VISIBLE_ITEMS - 1),
                     boxSizing: 'border-box',
                     display: 'flex',
                     alignItems: 'center',
