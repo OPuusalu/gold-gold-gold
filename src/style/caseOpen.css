@@ -35,3 +35,39 @@
     opacity: 0.6;
     z-index: 0;
 }
+
+#items-container {
+    display: flex;
+    overflow: hidden;
+    width: 100%;
+    border-radius: 16px;
+    position: relative;
+    padding: 16px;
+    box-sizing: border-box;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+#red-line {
+    position: absolute;
+    left: 50%;
+    top: 8%;
+    bottom: 8%;
+    width: 3px;
+    background: #ff0000;
+    z-index: 2;
+}
+
+.item-element {
+    min-width: 60px;
+    aspect-ratio: 1/1;
+    background-size: cover;
+    background-position: center;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-sizing: border-box;
+    position: relative;
+}

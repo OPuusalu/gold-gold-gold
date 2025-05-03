@@ -126,35 +126,8 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
     };
 
     const renderAnimation = () => (
-        <div 
-            id="items-container" 
-            style={{
-                display: 'flex',
-                overflow: 'hidden',
-                width: '100%',
-                minWidth: itemWidth * 6,
-                borderRadius: '16px',
-                position: 'relative',
-                padding: '16px',
-                boxSizing: 'border-box',
-                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)',
-                border: '2px solidrgb(0, 0, 0)'
-            }}
-        >
-            <div 
-                id="red-line"
-                style={{
-                    position: 'absolute',
-                    left: '50%',
-                    top: '7%',
-                    bottom: '7%',
-                    width: '3px',
-                    background: 'linear-gradient(to bottom, #ff0000, #cc0000)',
-                    zIndex: 2,
-                    borderRadius: '2px',
-                    boxShadow: '0 0 8px rgba(255,0,0,0.3)'
-                }}
-            />
+        <div id="items-container" style={{ minWidth: itemWidth * 6 }}>
+            <div id="red-line"/>
             <motion.div
                 style={{
                     display: 'flex',
@@ -186,26 +159,15 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
 
             return (
                 <div
+                    className="item-element"
                     key={index}
                     id={`item-${index}`}
                     style={{
                         width: itemWidth,
                         height: itemWidth,
-                        minWidth: '60px',
-                        aspectRatio: '1/1',
                         backgroundImage: `url(${item?.Path || ''})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
                         border: `2px solid ${rarityColor}`,
-                        borderRadius: '5px',
-                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        overflow: 'hidden',
-                        margin: `0 ${CASE_CONFIG.ITEM_MARGIN}px`,
-                        boxSizing: 'border-box',
-                        position: 'relative',
+                        margin: `0 ${CASE_CONFIG.ITEM_MARGIN}px`
                     }}
                 >
                     {/* Corner indicators */}
