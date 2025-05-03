@@ -21,6 +21,7 @@ app.post('/api/random-item', (req, res) => {
         return res.status(400).json({ error: 'Invalid or empty case item list' });
     }
 
+    // Normal case opening logic with rarity distribution
     const random = Math.random();
     let rarity;
 
@@ -32,10 +33,6 @@ app.post('/api/random-item', (req, res) => {
     else rarity = 'GOLD';
 
     // Filter items by rarity
-    // items.forEach(item => {
-    //     console.log(item.Name, item.Value, item.Rarity);
-    //   });
-
     const filtered = items.filter(item => item.Rarity == rarity);
       
     if (filtered.length === 0) {

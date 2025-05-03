@@ -22,29 +22,57 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
     const [showDescription, setShowDescription] = useState(false); // State to control description visibility
     const [isOpening, setIsOpening] = useState(false); // New state for opening status
     const [paths, setPaths] = useState([]);
+    const [nextPaths, setNextPaths] = useState([]); // New state for next spin's paths
+
+    // Generate initial paths when component mounts
+    useEffect(() => {
+        const generateInitialPaths = async () => {
+            const initialPaths = await Promise.all(
+                Array.from({ length: totalItems }, async (_, index) => {
+                    const randomItemData = await randomItem();
+                    return randomItemData ? randomItemData.Path : '';
+                })
+            );
+            setPaths(initialPaths);
+            
+            // Also generate paths for the next spin
+            const nextSpinPaths = await Promise.all(
+                Array.from({ length: totalItems }, async (_, index) => {
+                    const randomItemData = await randomItem();
+                    return randomItemData ? randomItemData.Path : '';
+                })
+            );
+            setNextPaths(nextSpinPaths);
+        };
+        
+        generateInitialPaths();
+    }, [caseData]); // Regenerate when caseData changes
 
     const openCase = async () => {
         if (coins < caseData.price) return;
         setCoins(c => c - caseData.price);
 
-        const itemPaths = await Promise.all(
-            Array.from({ length: totalItems }, async (_, index) => {
-              const randomItemData = await randomItem();
-              return randomItemData ? randomItemData.Path : '';
-            })
-          );
-      
-        setPaths(itemPaths);
+        // Use current paths for this spin
+        const currentPaths = [...paths];
         setIsOpening(true);
         resetView();
         
-        const winningItem = await randomItem(); // Wait for randomItem to resolve
-        const newItems = generateItems(winningItem); // Generate new items
+        const winningItem = await randomItem();
+        const newItems = generateItems(winningItem, currentPaths); // Generate new items with current paths
         setRenderedItems(newItems); // Set the rendered items state after getting the item
         
         const randomEndXpos = randomInRange(rewardItemIndex * itemWidth - 120, rewardItemIndex * itemWidth - 20);
         setXPosition(-randomEndXpos);
         setIsCaseOpened(true); // Update state to indicate the case has been opened
+
+        // Generate paths for next spin while current spin is happening
+        const newNextPaths = await Promise.all(
+            Array.from({ length: totalItems }, async (_, index) => {
+                const randomItemData = await randomItem(); // true for filler items only
+                return randomItemData ? randomItemData.Path : '';
+            })
+        );
+        setNextPaths(newNextPaths);
 
         // Set item description after 3 seconds
         setTimeout(() => {
@@ -53,8 +81,11 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
             setShowDescription(true);
             setIsOpening(false);
             if(winningItem.Value > 0) {
-              setCoins(c => c + winningItem.Value);
+                setCoins(c => c + winningItem.Value);
             }
+            
+            // Update paths for next spin
+            setPaths([...nextPaths]);
         }, 3000);
     };
 
@@ -110,7 +141,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
             setAnimationElement(animation);
         };
 
-    const generateItems = (winningItem) => {
+    const generateItems = (winningItem, pathsToUse) => {
         const newItems = Array.from({ length: totalItems }, (_, index) => (
             <div
                 key={index}
@@ -121,7 +152,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                 backgroundImage:
                     index === rewardItemIndex
                     ? `url(${winningItem.Path})`
-                    : `url(${paths[index] || ''})`, // Use the paths stored in the state
+                    : `url(${pathsToUse[index] || ''})`, // Use the provided paths
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 border: '2px solid #ccc',
@@ -145,7 +176,9 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ items: caseData.items }),
+            body: JSON.stringify({ 
+                items: caseData.items
+            }),
         });
     
         if (!response.ok) {
