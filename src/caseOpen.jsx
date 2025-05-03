@@ -1,15 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { fetchRandomItem } from "./api/caseApi";
-
-const PORT = import.meta.env.VITE_API_PORT; // for Vite
-
-const itemWidth = 100; // px
-const itemMargin = 5; // px
-const visibleItems = 7; // number of items visible in container
-const totalItems = 30;
-const rewardItemIndex = totalItems - 1 - Math.ceil(visibleItems/2);
-const containerWidth = (itemWidth + 10) * visibleItems; // Adjusted for spacing
+import { CASE_CONFIG } from "./models/caseConfiguration"
 
 const randomInRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -28,7 +20,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
     useEffect(() => {
         const generateInitialPaths = async () => {
             const initialPaths = await Promise.all(
-                Array.from({ length: totalItems }, async (_, index) => {
+                Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, async (_, index) => {
                     const randomItemData = await fetchRandomItem(caseData.items);
                     return randomItemData ? randomItemData.Path : '';
                 })
@@ -37,7 +29,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
             
             // Also generate paths for the next spin
             const nextSpinPaths = await Promise.all(
-                Array.from({ length: totalItems }, async (_, index) => {
+                Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, async (_, index) => {
                     const randomItemData = await fetchRandomItem(caseData.items);
                     return randomItemData ? randomItemData.Path : '';
                 })
@@ -61,13 +53,13 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
         const newItems = generateItems(winningItem, currentPaths); // Generate new items with current paths
         setRenderedItems(newItems); // Set the rendered items state after getting the item
         
-        const randomEndXpos = randomInRange(rewardItemIndex * itemWidth - 120, rewardItemIndex * itemWidth - 20);
+        const randomEndXpos = randomInRange(CASE_CONFIG.REWARD_INDEX * CASE_CONFIG.ITEM_WIDTH - 120, CASE_CONFIG.REWARD_INDEX * CASE_CONFIG.ITEM_WIDTH - 20);
         setXPosition(-randomEndXpos);
         setIsCaseOpened(true); // Update state to indicate the case has been opened
 
         // Generate paths for next spin while current spin is happening
         const newNextPaths = await Promise.all(
-            Array.from({ length: totalItems }, async (_, index) => {
+            Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, async (_, index) => {
                 const randomItemData = await fetchRandomItem(caseData.items);
                 return randomItemData ? randomItemData.Path : '';
             })
@@ -102,7 +94,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                 style={{
                     display: 'flex',
                     overflow: 'hidden',
-                    width: containerWidth,
+                    width: CASE_CONFIG.CONTAINER_WIDTH,
                     backgroundColor: '#f0f0f0',
                     borderRadius: '10px',
                     position: 'relative',
@@ -126,13 +118,13 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                     <motion.div
                         style={{
                             display: 'flex',
-                            width: totalItems * (itemWidth + itemMargin * 2),
-                            height: itemWidth,
+                            width: CASE_CONFIG.TOTAL_ITEMS * (CASE_CONFIG.ITEM_WIDTH + CASE_CONFIG.ITEM_MARGIN * 2),
+                            height: CASE_CONFIG.ITEM_WIDTH,
                             position: 'relative',
                             zIndex: 1,
                         }}
                         animate={{ x: xPosition }} // Use xPosition for animation
-                        transition={{ duration: 3 }} // Animation duration
+                        transition={{ duration: CASE_CONFIG.ANIMATION_DURATION }} // Animation duration
                     >
                         {renderedItems} {/* Render the items from the state */}
                     </motion.div>
@@ -142,15 +134,15 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
         };
 
     const generateItems = (winningItem, pathsToUse) => {
-        const newItems = Array.from({ length: totalItems }, (_, index) => (
+        const newItems = Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, (_, index) => (
             <div
                 key={index}
                 id={`item-${index}`}
                 style={{
-                width: itemWidth,
-                height: itemWidth,
+                width: CASE_CONFIG.ITEM_WIDTH,
+                height: CASE_CONFIG.ITEM_WIDTH,
                 backgroundImage:
-                    index === rewardItemIndex
+                    index === CASE_CONFIG.REWARD_INDEX
                     ? `url(${winningItem.Path})`
                     : `url(${pathsToUse[index] || ''})`, // Use the provided paths
                 backgroundSize: 'cover',
@@ -162,7 +154,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 overflow: 'hidden',
-                margin: `0 ${itemMargin}px`,
+                margin: `0 ${CASE_CONFIG.ITEM_MARGIN}px`,
                 boxSizing: 'border-box',
                 }}
             />
@@ -198,7 +190,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                     backgroundColor: '#fff',
                     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
                     padding: '10px',
-                    height: itemWidth + 20,
+                    height: CASE_CONFIG.ITEM_WIDTH + 20,
                     boxSizing: 'content-box',
                     display: 'flex',
                     alignItems: 'center',
