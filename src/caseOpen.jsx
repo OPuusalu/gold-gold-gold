@@ -141,7 +141,9 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                 animate={{ x: state.xPosition }}
                 transition={{ 
                     duration: CASE_CONFIG.ANIMATION_DURATION,
-                    ease: 'easeOut'
+                    ease: 'easeOut',
+                    damping: 20,
+                    stiffness: 300
                 }}
             >
                 {state.renderedItems}
@@ -171,61 +173,17 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                     }}
                 >
                     {/* Corner indicators */}
-                    <div style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        border: `2px solid ${rarityColor}`,
-                        borderRadius: '5px',
-                        pointerEvents: 'none',
-                    }}/>
+                    <div id="item-corner-indicator" style={{ border: `2px solid ${rarityColor}`}}/>
                     
                     {/* Top-left corner triangle */}
-                    <div style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        width: 0,
-                        height: 0,
-                        borderTop: '15px solid transparent',
-                        borderLeft: '15px solid transparent',
-                        borderRight: '15px solid transparent',
-                        borderBottom: `15px solid ${rarityColor}`,
-                        transform: 'rotate(-135deg)',
-                        filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.3))'
-                    }}/>
+                    <div id="item-corner-triangle" style={{ bottom: 0, left: 0, borderBottom: `15px solid ${rarityColor}`, transform: 'rotate(-135deg)'}}/>
                     
                     {/* Bottom-right corner triangle */}
-                    <div style={{
-                        position: 'absolute',
-                        top: 0,
-                        right: 0,
-                        width: 0,
-                        height: 0,
-                        borderTop: '15px solid transparent',
-                        borderLeft: '15px solid transparent',
-                        borderRight: '15px solid transparent',
-                        borderBottom: `15px solid ${rarityColor}`,
-                        transform: 'rotate(45deg)',
-                        filter: 'drop-shadow(0 -2px 2px rgba(0,0,0,0.3))'
-                    }}/>
+                    <div id="item-corner-triangle" style={{ top: 0, right: 0, borderBottom: `15px solid ${rarityColor}`, transform: 'rotate(45deg)'}}/>
 
                     {/* Rarity text label */}
                     {item?.Rarity && (
-                        <div style={{
-                            position: 'absolute',
-                            bottom: '2px',
-                            right: '2px',
-                            backgroundColor: 'rgba(0,0,0,0.7)',
-                            color: 'white',
-                            padding: '2px 6px',
-                            fontSize: '0.7rem',
-                            borderRadius: '3px',
-                            textTransform: 'uppercase',
-                            fontWeight: 'bold'
-                        }}>
+                        <div id="item-rarity-label">
                             {item.Rarity}
                         </div>
                     )}
@@ -285,7 +243,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                 >
                     <span style={{ 
                         color: '#48bb78', 
-                        fontSize: 'clamp(1.5rem, 6vw, 2.5rem)' // Responsive emoji size
+                        fontSize: 'clamp(1rem, 4vw, 1.5rem)' // Responsive emoji size
                     }}>
                         🎉
                     </span>
@@ -295,50 +253,10 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
     
             <button
                 id="open-case-button"
-                type="button" 
-                onClick={openCase} 
-                disabled={state.isOpening || coins < caseData.price} 
-                style={{ 
-                    margin: '2rem 0',
-                    padding: '1rem 2rem',
-                    fontSize: 'clamp(1rem, 4vw, 1.5rem)',
-                    fontWeight: '700',
-                    background: state.isOpening 
-                    ? 'linear-gradient(145deg, #e2e8f0, #cbd5e0)' 
-                    : 'linear-gradient(145deg,rgb(56, 56, 56),rgb(62, 72, 81))',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    boxShadow: state.isOpening 
-                    ? '0 2px 4px rgba(0,0,0,0.1)' 
-                    : '0 4px 6px -1px rgba(17, 17, 17, 0.3), 0 2px 4px -1px rgba(21, 31, 39, 0.2)',
-                    textShadow: '0 1px 2px rgba(0,0,0,0.2)',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    ':hover:not(:disabled)': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 10px 15px -3px rgba(66, 153, 225, 0.3), 0 4px 6px -2px rgba(66, 153, 225, 0.2)'
-                    },
-                    ':active:not(:disabled)': {
-                    transform: 'translateY(0)'
-                    },
-                    ':disabled': {
-                    opacity: 0.7,
-                    cursor: 'not-allowed'
-                    },
-                    ':before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '30%',
-                    background: 'rgba(255,255,255,0.2)',
-                    borderRadius: '12px 12px 0 0'
-                    }
-                }}
+                type="button"
+                className="open-case-btn"
+                onClick={openCase}
+                disabled={state.isOpening || coins < caseData.price}
                 >
                 {state.isOpening ? (
                     <span style={{ 
@@ -352,7 +270,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                         animation: 'spin 1s linear infinite',
                         filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.3))'
                     }}>
-                        🌀
+                        ⏳
                     </span>
                     Spinning...
                     </span>
