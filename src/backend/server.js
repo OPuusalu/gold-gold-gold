@@ -1,5 +1,8 @@
 import express from 'express';
 import cors from 'cors';
+import { cases } from './data/caseData.js';
+import { calculateRandom } from './helpers/calculateRandom.js';
+import { CaseItem } from '../models/CaseItem.js';
 
 const app = express();
 
@@ -12,36 +15,120 @@ app.use(cors());
 // Middleware to parse JSON bodies
 app.use(express.json());
 
-// POST route to receive case items and return one random item
-app.post('/api/random-item', (req, res) => {
-    const { items } = req.body;
+const users = [
+    {
+        id: 1,
+        token: 'abc55',
+        coins: 1500
+    }
+]
 
-    // Check if items are valid
-    if (!Array.isArray(items) || items.length === 0) {
-        return res.status(400).json({ error: 'Invalid or empty case item list' });
+// Improved verify endpoint
+app.post('/api/verify', (req, res) => {
+    const { token } = req.body; // Now using body instead of params
+    
+    if (!token) {
+        return res.status(400).json({ 
+            valid: false,
+            error: 'Token is required' 
+        });
     }
 
-    // Normal case opening logic with rarity distribution
-    const random = Math.random();
-    let rarity;
+    const user = users.find(u => u.token === token);
+    
+    if (!user) {
+        return res.status(401).json({ 
+            valid: false,
+            error: 'Invalid token' 
+        });
+    }
 
-    // Determine the rarity of the item
-    if (random < 0.5) rarity = 'MIL-SPEC';
-    else if (random < 0.8) rarity = 'RESTRICTED';
-    else if (random < 0.95) rarity = 'CLASSIFIED';
-    else if (random < 0.99) rarity = 'COVERT';
-    else rarity = 'GOLD';
+    // Successful verification
+    return res.json({ 
+        valid: true,
+        user: {
+            id: user.id,
+            coins: user.coins
+        }
+    });
+});
 
-    // Filter items by rarity
-    const filtered = items.filter(item => item.Rarity == rarity);
-      
-    if (filtered.length === 0) {
-        return res.status(404).json({ error: `No items with rarity '${rarity}' found` });
-    }    
+// GET route to fetch all cases
+app.get('/api/cases/', (_, res) => {
+    res.json(cases);
+});
 
-    // Select a random item from the filtered list
-    const selected = filtered[Math.floor(Math.random() * filtered.length)];
-    res.json(selected); // Return the selected item
+// GET route to fetch a case by its ID
+app.get('/api/cases/:id', (req, res) => {
+    const caseId = parseInt(req.params.id);
+    
+    const foundCase = cases.find(c => c.id === caseId);
+
+    if (!foundCase) {
+        return res.status(404).json({ error: `Case with ID ${caseId} not found` });
+    }
+
+    res.json(foundCase);
+});
+
+// API to open a case - ensure this is exactly matching
+app.post('/api/cases/:id/open/:userToken', async (req, res) => {
+    const caseId = Number(req.params.id); // Get from URL
+    const userToken = req.params.userToken; // Get from URL
+
+    try {
+        // Step 1: Authenticate the user
+        const user = users.find(u => u.token === userToken);
+        if (!user) {
+            return res.status(401).json({ message: 'Invalid user token' }); // 401 for unauthorized
+        }
+
+        // Step 2: Get the case
+        const caseData = cases.find(c => c.id === caseId);
+        if (!caseData) {
+            return res.status(404).json({ message: 'Case not found' });
+        }
+
+        if (user.coins >= caseData.price) {
+            user.coins -= caseData.price;
+        } else {
+            return res.json(301).json({ message: 'Invalid coin count' })
+        }
+        const winningItem = calculateRandom(caseData.items);
+        
+        if (winningItem?.Value > 0) {
+            user.coins += winningItem.Value;
+        }
+
+        return res.json({
+            item: winningItem,
+            newCoinBalance: user.coins
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// POST route to receive case items and return one random item
+app.post('/api/cases/:id/random', (req, res) => {
+    const caseId = parseInt(req.body.caseId);  // Correctly access caseId from the request body
+    const caseData = cases.find(c => c.id === caseId); // Find the case based on the caseId
+
+    try {
+        if (!caseData || !caseData.items) {
+            return res.status(400).json({ error: 'Invalid caseId or case items not found' });
+        }
+
+        // Fetch a random item from the provided list of items in the case
+        const randomItem = calculateRandom(caseData.items);
+
+        // Return the item in the expected format
+        res.status(200).json(randomItem);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
 });
 
 // Start the server and listen on the specified port

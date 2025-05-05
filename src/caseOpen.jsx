@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import './style/caseOpen.css';
-import { fetchRandomItem } from "./api/caseApi";
+import { fetchRandomItem, openCaseQuery } from "./api/caseApi";
 import { CASE_CONFIG } from "./models/caseConfiguration";
+import { CaseItem } from "./models/CaseItem";
 
 const randomInRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -14,8 +15,9 @@ const RARITY_COLORS = {
   'GOLD': '#ffd700'
 };
 
-export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
+export default function CaseOpen({ coins, setCoins, caseId }) {
     const [itemWidth, setItemWidth] = useState(CASE_CONFIG.ITEM_WIDTH());
+    const [caseData, setCaseData] = useState([]);
     const [state, setState] = useState({
         renderedItems: [],
         xPosition: 0,
@@ -26,55 +28,64 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
         nextPaths: []
     });
     const animationKey = useRef(0);
-
-
+    
     useEffect(() => {
         const handleResize = () => {
           setItemWidth(CASE_CONFIG.ITEM_WIDTH());
         };
         
         window.addEventListener('resize', handleResize);
+        
+        fetch(`http://localhost:4445/api/cases/${caseId}`)
+        .then(res => res.json())
+        .then(data => { setCaseData(data); })
+        .catch(err => { console.log(err); });
+        
         return () => window.removeEventListener('resize', handleResize);
       }, []);
 
-    // Generate initial paths when component mounts
+    // Generate initial paths when caseData is available
     useEffect(() => {
-        const abortController = new AbortController();
+        if (!caseData || caseData.length === 0) {
+            console.log("Waiting for caseData...");
+            return;  // Early exit if caseData is empty or not available
+        }
 
-        const generateInitialPaths = async () => {
+        console.log(caseData);
+
+        const generatePaths = async () => {
             try {
-                const initialPaths = await Promise.all(
-                    Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, async (_, index) => {
-                        const randomItemData = await fetchRandomItem(caseData.items);
-                        return randomItemData ? randomItemData.Path : '';
-                    })
-                );
-                
-                const nextSpinPaths = await Promise.all(
-                    Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, async (_, index) => {
-                        const randomItemData = await fetchRandomItem(caseData.items);
-                        return randomItemData ? randomItemData.Path : '';
-                    })
-                );
+                const [initialPaths, nextSpinPaths] = await Promise.all([
+                    Promise.all(Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, () => 
+                        fetchRandomItem(caseData.id).then(item => item?.Path || '')
+                    )),
+                    Promise.all(Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, () => 
+                        fetchRandomItem(caseData.id).then(item => item?.Path || '')
+                    ))
+                ]);
 
                 setState(prev => ({
                     ...prev,
                     paths: initialPaths,
-                    nextPaths: nextSpinPaths
+                    nextPaths: nextSpinPaths,
+                    renderedItems: generateItems(null, initialPaths)
                 }));
             } catch (err) {
-                if (!abortController.signal.aborted) {
-                    console.error('Failed to load paths ', err);
-                }
+                console.error('Failed to load paths:', err);
             }
         };
-        
-        generateInitialPaths();
-        return () => abortController.abort();
+
+        generatePaths();
     }, [caseData]);
 
     const openCase = async () => {
-        if (coins < caseData.price) return;
+
+        const token = localStorage.getItem('userToken');
+        const response = await openCaseQuery(caseData.id, token);
+        const { item, newCoinBalance } = response.data;
+
+         // doesn't affect actual coin count, just to make it seem it changes right after pressing the button
+        setCoins(coins - caseData.price);
 
         animationKey.current += 1;
         setState(prev => ({ ...prev, xPosition: 0 }));
@@ -82,11 +93,9 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
         // Reset view
         setState(prev => ({ ...prev, description: { ...prev.description, visible: false } }));
         setState(prev => ({ ...prev, isOpening: true }));
-        setCoins(c => c - caseData.price);
         
         const currentPaths = [...state.paths];
-        const winningItem = await fetchRandomItem(caseData.items);
-        const newItems = generateItems(winningItem, currentPaths);
+        const newItems = generateItems(item, currentPaths);
         setState(prev => ({ ...prev, renderedItems: newItems }));
                 
         // so what's going on here:
@@ -104,14 +113,14 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
 
         const newNextPaths = await Promise.all(
             Array.from({ length: CASE_CONFIG.TOTAL_ITEMS }, async (_, index) => {
-                const randomItemData = await fetchRandomItem(caseData.items);
+                const randomItemData = await fetchRandomItem(caseData.id);
                 return randomItemData ? randomItemData.Path : '';
             })
         );
         setState(prev => ({ ...prev, nextPaths: newNextPaths }));
 
         setTimeout(() => {
-            const description = `You won ${winningItem.Name} ( ${winningItem.Value > 0 ? `+${winningItem.Value}🪙` : ''} )`;
+            const description = `You won ${item.Name} ( ${item.Value > 0 ? `+${item.Value}🪙` : ''} )`;
             setState(prev => ({
                 ...prev,
                 description: { text: description, visible: true },
@@ -119,9 +128,7 @@ export default function CaseOpen({ coins, setCoins, onBack, caseData }) {
                 paths: [...prev.nextPaths]
             }));
             
-            if(winningItem.Value > 0) {
-                setCoins(c => c + winningItem.Value);
-            }
+            setCoins(newCoinBalance);
         }, 3000);
     };
 
