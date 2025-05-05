@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import './style/caseOpen.css';
 import { fetchRandomItem, openCaseQuery } from "./api/caseApi";
 import { CASE_CONFIG } from "./models/caseConfiguration";
-import { CaseItem } from "./models/CaseItem";
 
 const randomInRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -47,11 +46,8 @@ export default function CaseOpen({ coins, setCoins, caseId }) {
     // Generate initial paths when caseData is available
     useEffect(() => {
         if (!caseData || caseData.length === 0) {
-            console.log("Waiting for caseData...");
-            return;  // Early exit if caseData is empty or not available
+            return;
         }
-
-        console.log(caseData);
 
         const generatePaths = async () => {
             try {
@@ -84,7 +80,7 @@ export default function CaseOpen({ coins, setCoins, caseId }) {
         const response = await openCaseQuery(caseData.id, token);
         const { item, newCoinBalance } = response.data;
 
-         // doesn't affect actual coin count, just to make it seem it changes right after pressing the button
+        // doesn't affect actual coin count, just to make it seem it changes right after pressing the button
         setCoins(coins - caseData.price);
 
         animationKey.current += 1;
@@ -245,12 +241,12 @@ export default function CaseOpen({ coins, setCoins, caseId }) {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '12px',
-                        flexWrap: 'wrap' // Allow wrapping on small screens
+                        flexWrap: 'wrap'
                     }}
                 >
                     <span style={{ 
                         color: '#48bb78', 
-                        fontSize: 'clamp(1rem, 4vw, 1.5rem)' // Responsive emoji size
+                        fontSize: 'clamp(1rem, 4vw, 1.5rem)'
                     }}>
                         🎉
                     </span>

@@ -17,12 +17,9 @@ export const fetchRandomItem = async (caseId) => {
         }
 
         // Create and return a new CaseItem instance
-        const caseItem = new CaseItem(data.Name, data.Path, data.Value, data.Rarity);
-        return caseItem;
-
+        return new CaseItem(data.Name, data.Path, data.Value, data.Rarity);
     } catch (error) {
         console.error('Error fetching random item:', error);
-        throw error;  // Re-throw the error after logging it
     }
 };
 
@@ -49,10 +46,9 @@ export const openCaseQuery = async (caseId, userToken) => {
     if (!data.item || !data.newCoinBalance) {
       throw new Error('Invalid response structure');
     }
-
-    return {data};
-    
-  } catch (err) {
-  console.error('Case opening error:', err.message);
+    return {data};  
+  } 
+  catch (err) {
+    console.error('Case opening error:', err.message);
   }
 }

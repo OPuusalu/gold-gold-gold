@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import { cases } from './data/caseData.js';
 import { calculateRandom } from './helpers/calculateRandom.js';
-import { CaseItem } from '../models/CaseItem.js';
 
 const app = express();
 
@@ -11,7 +10,6 @@ const PORT = 4445;
 
 // Enable CORS for frontend requests
 app.use(cors());
-
 // Middleware to parse JSON bodies
 app.use(express.json());
 
@@ -19,13 +17,13 @@ const users = [
     {
         id: 1,
         token: 'abc55',
-        coins: 1500
+        coins: 2300
     }
 ]
 
-// Improved verify endpoint
+// POST route to verify user by their token
 app.post('/api/verify', (req, res) => {
-    const { token } = req.body; // Now using body instead of params
+    const { token } = req.body;
     
     if (!token) {
         return res.status(400).json({ 
@@ -53,6 +51,19 @@ app.post('/api/verify', (req, res) => {
     });
 });
 
+// GET route to fetch coins by user's token
+app.get('/api/coins/:token', (req, res) => {
+    const userToken = req.params.token;
+    
+    const user = users.find(u => u.token === userToken);
+    
+    if (!user) {
+        return res.status(404).json({ error: `User not found` });
+    }
+    
+    res.json({ coins: user.coins });
+});
+
 // GET route to fetch all cases
 app.get('/api/cases/', (_, res) => {
     res.json(cases);
@@ -71,19 +82,17 @@ app.get('/api/cases/:id', (req, res) => {
     res.json(foundCase);
 });
 
-// API to open a case - ensure this is exactly matching
+// POST route to open a case
 app.post('/api/cases/:id/open/:userToken', async (req, res) => {
-    const caseId = Number(req.params.id); // Get from URL
-    const userToken = req.params.userToken; // Get from URL
+    const caseId = Number(req.params.id);
+    const userToken = req.params.userToken;
 
     try {
-        // Step 1: Authenticate the user
         const user = users.find(u => u.token === userToken);
         if (!user) {
-            return res.status(401).json({ message: 'Invalid user token' }); // 401 for unauthorized
+            return res.status(401).json({ message: 'Invalid user token' });
         }
 
-        // Step 2: Get the case
         const caseData = cases.find(c => c.id === caseId);
         if (!caseData) {
             return res.status(404).json({ message: 'Case not found' });
@@ -113,18 +122,16 @@ app.post('/api/cases/:id/open/:userToken', async (req, res) => {
 
 // POST route to receive case items and return one random item
 app.post('/api/cases/:id/random', (req, res) => {
-    const caseId = parseInt(req.body.caseId);  // Correctly access caseId from the request body
-    const caseData = cases.find(c => c.id === caseId); // Find the case based on the caseId
+    const caseId = parseInt(req.body.caseId);
+    const caseData = cases.find(c => c.id === caseId);
 
     try {
         if (!caseData || !caseData.items) {
             return res.status(400).json({ error: 'Invalid caseId or case items not found' });
         }
 
-        // Fetch a random item from the provided list of items in the case
         const randomItem = calculateRandom(caseData.items);
 
-        // Return the item in the expected format
         res.status(200).json(randomItem);
     } catch (error) {
         res.status(400).json({ error: error.message });

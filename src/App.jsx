@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import './style/App.css';
 import CaseOpen from './caseOpen';
-import { CaseItem } from './models/CaseItem';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
@@ -17,6 +16,7 @@ function App() {
   
     const verifyToken = async (token) => {
       try {
+        console.log('Verifying user token')
         const response = await fetch('http://localhost:4445/api/verify', {
           method: 'POST',
           headers: {
@@ -31,35 +31,51 @@ function App() {
           throw new Error(data.error || 'Invalid token');
         }
   
-        // Only store token if it came from URL (new login)
         if (tokenFromUrl) {
           localStorage.setItem('userToken', tokenFromUrl);
         }
         
         setIsAuthenticated(true);
-        if (data.user?.coins) {
-          setCoins(data.user.coins);
-        }
+        console.log('User verified successfully')
       } catch (error) {
         console.error("Authentication failed:", error);
         localStorage.removeItem('userToken');
         setIsAuthenticated(false);
       }
     };
+
+    const fetchCoins = async () => {
+      try {
+          console.log('Fetching coins from /api/coins/:userToken')
+          const token = localStorage.getItem('userToken');
+          if (!token) return;
+          
+          const response = await fetch(`http://localhost:4445/api/coins/${token}`);
+          if (!response.ok) throw new Error('Failed to fetch coins');
+          
+          const data = await response.json();
+          setCoins(data.coins);
+          console.log('Coins fetched successfully')
+      } catch (error) {
+          console.error('Coin fetch error:', error);
+      }
+    };
   
     const fetchCases = async () => {
       try {
+        console.log("Fetching cases from /api/cases/")
         const response = await fetch('http://localhost:4445/api/cases/');
         if (!response.ok) throw new Error('Failed to fetch cases');
         const data = await response.json();
         setCases(data);
+        console.log("Cases fetched successfully")
       } catch (error) {
         console.error('Case fetch error:', error);
       }
     };
   
     if (tokenToVerify) {
-      verifyToken(tokenToVerify).then(fetchCases);
+      verifyToken(tokenToVerify).then(fetchCases).then(fetchCoins);
     } else {
       setIsAuthenticated(false);
       fetchCases();
@@ -76,7 +92,7 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* Header with coin display */}
+      {/*Header*/}
       <header className="app-header">
         <button
           onClick={() => setSelectedCase(null)}
@@ -90,6 +106,7 @@ function App() {
         </div>
       </header>
 
+      {/*Main content area*/}
       <main className="main-content">
         {!selectedCase ? (
           <div className="cases-container">
