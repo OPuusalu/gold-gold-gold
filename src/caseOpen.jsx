@@ -7,11 +7,11 @@ import { CASE_CONFIG } from "./models/caseConfiguration";
 const randomInRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 const RARITY_COLORS = {
-  'MIL-SPEC': '#4b69ff',
-  'RESTRICTED': '#8847ff',
-  'CLASSIFIED': '#d32ce6',
-  'COVERT': '#eb4b4b',
-  'GOLD': '#ffd700'
+  'COMMON': '#4b69ff',
+  'UNCOMMON': '#8847ff',
+  'RARE': '#d32ce6',
+  'EPIC': '#eb4b4b',
+  'GOLDEN': '#ffd700'
 };
 
 export default function CaseOpen({ coins, setCoins, caseId }) {
@@ -244,12 +244,7 @@ export default function CaseOpen({ coins, setCoins, caseId }) {
                         flexWrap: 'wrap'
                     }}
                 >
-                    <span style={{ 
-                        color: '#48bb78', 
-                        fontSize: 'clamp(1rem, 4vw, 1.5rem)'
-                    }}>
-                        🎉
-                    </span>
+                    <span style={{ color: '#48bb78', fontSize: 'clamp(1rem, 4vw, 1.5rem)'}}/>
                     {state.description.text}
                 </motion.h2>
             </div>

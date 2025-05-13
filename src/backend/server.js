@@ -1,6 +1,7 @@
 import express from 'express';
+import axios from 'axios';
 import cors from 'cors';
-import { cases } from './data/caseData.js';
+import { aiCases } from './data/caseData.js';
 import { calculateRandom } from './helpers/calculateRandom.js';
 
 const app = express();
@@ -13,55 +14,62 @@ app.use(cors());
 // Middleware to parse JSON bodies
 app.use(express.json());
 
-const users = [
-    {
-        id: 1,
-        token: 'abc55',
-        coins: 2300
-    }
-]
+const BASE_URI = "https://evolved-weasel-literate.ngrok-free.app/api";
+
+// loading ai generated cases
+const cases = aiCases;
 
 // POST route to verify user by their token
-app.post('/api/verify', (req, res) => {
+app.post('/api/verify', async (req, res) => {
     const { token } = req.body;
-    
+
     if (!token) {
-        return res.status(400).json({ 
-            valid: false,
-            error: 'Token is required' 
-        });
+        return res.status(400).json({ valid: false, error: 'Token is required' });
     }
 
-    const user = users.find(u => u.token === token);
-    
-    if (!user) {
-        return res.status(401).json({ 
-            valid: false,
-            error: 'Invalid token' 
+    try {
+        const response = await fetch(`${BASE_URI}/User/me`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
-    }
 
-    // Successful verification
-    return res.json({ 
-        valid: true,
-        user: {
-            id: user.id,
-            coins: user.coins
+        if (!response.ok) {
+            return res.status(401).json({ valid: false, error: 'Invalid token' });
         }
-    });
+
+        const user = await response.json();
+
+        // Check if basic user data exists
+        if (user && user.id && user.username) {
+            return res.json({ valid: true, user });
+        } else {
+            return res.status(401).json({ valid: false, error: 'Invalid user data' });
+        }
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ valid: false, error: 'Internal server error' });
+    }
 });
 
 // GET route to fetch coins by user's token
-app.get('/api/coins/:token', (req, res) => {
-    const userToken = req.params.token;
-    
-    const user = users.find(u => u.token === userToken);
-    
-    if (!user) {
-        return res.status(404).json({ error: `User not found` });
+app.get('/api/coins/:token', async (req, res) => {
+    const token = req.params.token;
+
+    try {
+        const response = await axios.post(`${BASE_URI}/Transaction/balance`, null, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        const coinAmount = response.data.currency;
+        res.json({ coins: coinAmount });
+    } catch (error) {
+        console.error('Error fetching coin balance:', error.message);
+        res.status(500).json({ error: 'Failed to fetch coin balance' });
     }
-    
-    res.json({ coins: user.coins });
 });
 
 // GET route to fetch all cases
@@ -88,34 +96,38 @@ app.post('/api/cases/:id/open/:userToken', async (req, res) => {
     const userToken = req.params.userToken;
 
     try {
-        const user = users.find(u => u.token === userToken);
-        if (!user) {
-            return res.status(401).json({ message: 'Invalid user token' });
-        }
-
         const caseData = cases.find(c => c.id === caseId);
         if (!caseData) {
             return res.status(404).json({ message: 'Case not found' });
         }
 
-        if (user.coins >= caseData.price) {
-            user.coins -= caseData.price;
-        } else {
-            return res.json(301).json({ message: 'Invalid coin count' })
-        }
+        // Random winning item
         const winningItem = calculateRandom(caseData.items);
-        
-        if (winningItem?.Value > 0) {
-            user.coins += winningItem.Value;
-        }
+
+        const amount = -caseData.price + winningItem.Value
+
+        await axios.post(`${BASE_URI}/Transaction/addBalance`, { Amount: amount }, {
+            headers: {
+                Authorization: `Bearer ${userToken}`
+            }
+        });
+
+        // Request new balance
+        const response = await axios.post(`${BASE_URI}/Transaction/balance`, null, {
+            headers: {
+                Authorization: `Bearer ${userToken}`
+            }
+        });
+
+        const coinAmount = response.data.currency;
 
         return res.json({
             item: winningItem,
-            newCoinBalance: user.coins
+            newCoinBalance: coinAmount
         });
 
     } catch (error) {
-        console.error(error);
+        console.error('Error during case opening:', error.message);
         return res.status(500).json({ message: 'Internal server error' });
     }
 });

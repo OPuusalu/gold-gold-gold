@@ -7,11 +7,11 @@ export function calculateRandom(items) {
     let rarity;
 
     // Determine the rarity of the item
-    if (random < 0.5) rarity = 'MIL-SPEC';
-    else if (random < 0.8) rarity = 'RESTRICTED';
-    else if (random < 0.95) rarity = 'CLASSIFIED';
-    else if (random < 0.99) rarity = 'COVERT';
-    else rarity = 'GOLD';
+    if (random < 0.5) rarity = 'COMMON';
+    else if (random < 0.8) rarity = 'UNCOMMON';
+    else if (random < 0.95) rarity = 'RARE';
+    else if (random < 0.99) rarity = 'EPIC';
+    else rarity = 'GOLDEN';
 
     // Filter items by rarity
     const filtered = items.filter(item => item.Rarity === rarity);

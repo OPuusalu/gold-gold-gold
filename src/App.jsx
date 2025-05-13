@@ -137,7 +137,7 @@ function App() {
         )}
       </main>
 
-      {/* Footer */}
+      {/* Legal footer
       <footer className="app-footer">
         <div>
           This website is not affiliated with or endorsed by Valve Corporation. 
@@ -150,6 +150,7 @@ function App() {
           respective owners and are used here for educational/fan purposes only.
         </div>
       </footer>
+      */}
     </div>
   );
 }
