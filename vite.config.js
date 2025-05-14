@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
       port: parseInt(env.VITE_MAINPAGE_PORT) || 3000, // Default to 3000 if not set
     },
     build: {
-      base: 'https://opuusalu.github.io/gold-gold-gold/',
+      base: '/gold-gold-gold/',
       outDir: 'dist', // Output directory for the build files
       assetsDir: 'assets', // Directory to place assets
       sourcemap: mode === 'production', // Generate source maps in production only
