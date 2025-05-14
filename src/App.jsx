@@ -7,6 +7,7 @@ function App() {
   const [coins, setCoins] = useState(1000);
   const [selectedCase, setSelectedCase] = useState(null);
   const [cases, setCases] = useState(null);
+  const BASE_URL = "https://leopard-sensible-commonly.ngrok-free.app/api";
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -17,7 +18,7 @@ function App() {
     const verifyToken = async (token) => {
       try {
         console.log('Verifying user token')
-        const response = await fetch('http://localhost:4445/api/verify', {
+        const response = await fetch(BASE_URL + '/verify', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -50,7 +51,7 @@ function App() {
           const token = localStorage.getItem('userToken');
           if (!token) return;
           
-          const response = await fetch(`http://localhost:4445/api/coins/${token}`);
+          const response = await fetch(BASE_URL + `/coins/${token}`);
           if (!response.ok) throw new Error('Failed to fetch coins');
           
           const data = await response.json();
@@ -64,7 +65,7 @@ function App() {
     const fetchCases = async () => {
       try {
         console.log("Fetching cases from /api/cases/")
-        const response = await fetch('http://localhost:4445/api/cases/');
+        const response = await fetch(BASE_URL + '/cases/');
         if (!response.ok) throw new Error('Failed to fetch cases');
         const data = await response.json();
         setCases(data);

@@ -2,7 +2,7 @@ import { CaseItem } from '../models/CaseItem';
 
 export const fetchRandomItem = async (caseId) => {
     try {
-        const response = await fetch(`http://localhost:4445/api/cases/${caseId}/random`, {
+        const response = await fetch(`https://leopard-sensible-commonly.ngrok-free.app/api/cases/${caseId}/random`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ caseId }),
@@ -25,7 +25,7 @@ export const fetchRandomItem = async (caseId) => {
 
 export const openCaseQuery = async (caseId, userToken) => {
   try {
-    const response = await fetch(`http://localhost:4445/api/cases/${caseId}/open/${userToken}`, {
+    const response = await fetch(`https://leopard-sensible-commonly.ngrok-free.app/api/cases/${caseId}/open/${userToken}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

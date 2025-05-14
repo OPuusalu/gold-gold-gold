@@ -35,7 +35,7 @@ export default function CaseOpen({ coins, setCoins, caseId }) {
         
         window.addEventListener('resize', handleResize);
         
-        fetch(`http://localhost:4445/api/cases/${caseId}`)
+        fetch(`https://leopard-sensible-commonly.ngrok-free.app/api/cases/${caseId}`)
         .then(res => res.json())
         .then(data => { setCaseData(data); })
         .catch(err => { console.log(err); });

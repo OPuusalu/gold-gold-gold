@@ -3,27 +3,33 @@ import react from '@vitejs/plugin-react-swc';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-
   return {
+    base: '/gold-gold-gold/',
     plugins: [react()],
     server: {
-      // Dynamically set the port from the environment variable
-      port: parseInt(env.VITE_MAINPAGE_PORT) || 3000, // Default to 3000 if not set
+      port: parseInt(env.VITE_MAINPAGE_PORT) || 3000,
+      // Add host to allow network access if needed
+      host: true,
     },
     build: {
       base: '/gold-gold-gold/',
-      outDir: 'dist', // Output directory for the build files
-      assetsDir: 'assets', // Directory to place assets
-      sourcemap: mode === 'production', // Generate source maps in production only
-      // You can add more options here like minification, etc.
+      outDir: 'dist',
+      assetsDir: 'assets',
+      emptyOutDir: true, // Ensure the dist folder is cleaned before build
+      sourcemap: mode === 'development', // Usually better to have sourcemaps in dev only
+      minify: 'terser', // Enable minification
       rollupOptions: {
         output: {
-          // Customize the file naming if needed
           entryFileNames: 'assets/[name]-[hash].js',
           chunkFileNames: 'assets/[name]-[hash].js',
-          assetFileNames: 'assets/[name]-[hash].[ext]',
+          assetFileNames: 'assets/[name]-[hash][extname]',
         },
       },
     },
+    // Add preview configuration
+    preview: {
+      port: 4173,
+      host: true
+    }
   };
 });
