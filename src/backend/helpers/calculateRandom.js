@@ -7,10 +7,10 @@ export function calculateRandom(items) {
     let rarity;
 
     // Determine the rarity of the item
-    if (random < 0.5) rarity = 'COMMON';
-    else if (random < 0.8) rarity = 'UNCOMMON';
-    else if (random < 0.95) rarity = 'RARE';
-    else if (random < 0.99) rarity = 'EPIC';
+    if (random < 0.4) rarity = 'COMMON';
+    else if (random < 0.75) rarity = 'UNCOMMON';
+    else if (random < 0.90) rarity = 'RARE';
+    else if (random < 0.95) rarity = 'EPIC';
     else rarity = 'GOLDEN';
 
     // Filter items by rarity
