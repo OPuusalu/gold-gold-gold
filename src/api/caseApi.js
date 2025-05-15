@@ -4,7 +4,7 @@ export const fetchRandomItem = async (caseId) => {
     try {
         const response = await fetch(`https://leopard-sensible-commonly.ngrok-free.app/api/cases/${caseId}/random`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
             body: JSON.stringify({ caseId }),
         });
 
@@ -29,6 +29,7 @@ export const openCaseQuery = async (caseId, userToken) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        "ngrok-skip-browser-warning": "true"
       },
       body: JSON.stringify({
         caseId: caseId,

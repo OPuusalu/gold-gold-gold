@@ -22,6 +22,7 @@ function App() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            "ngrok-skip-browser-warning": "true",
           },
           body: JSON.stringify({ token })
         });
@@ -47,29 +48,39 @@ function App() {
 
     const fetchCoins = async () => {
       try {
-          console.log('Fetching coins from /api/coins/:userToken')
-          const token = localStorage.getItem('userToken');
-          if (!token) return;
-          
-          const response = await fetch(BASE_URL + `/coins/${token}`);
-          if (!response.ok) throw new Error('Failed to fetch coins');
-          
-          const data = await response.json();
-          setCoins(data.coins);
-          console.log('Coins fetched successfully')
+        console.log(`Fetching coins from /api/coins/:userToken`);
+        const token = localStorage.getItem('userToken');
+        if (!token) return;
+
+        const response = await fetch(BASE_URL + `/coins/${token}`, {
+          headers: {
+            "ngrok-skip-browser-warning": "true", // Correct way to pass headers
+          },
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch coins');
+        
+        const data = await response.json();
+        setCoins(data.coins);
+        console.log('Coins fetched successfully');
       } catch (error) {
-          console.error('Coin fetch error:', error);
+        console.error('Coin fetch error:', error);
       }
     };
   
     const fetchCases = async () => {
       try {
-        console.log("Fetching cases from /api/cases/")
-        const response = await fetch(BASE_URL + '/cases/');
+        console.log("Fetching cases from /api/cases/");
+        const response = await fetch(BASE_URL + '/cases/', {
+          headers: {
+            "ngrok-skip-browser-warning": "true", // Skip Ngrok warning
+          },
+        });
+
         if (!response.ok) throw new Error('Failed to fetch cases');
         const data = await response.json();
         setCases(data);
-        console.log("Cases fetched successfully")
+        console.log("Cases fetched successfully");
       } catch (error) {
         console.error('Case fetch error:', error);
       }

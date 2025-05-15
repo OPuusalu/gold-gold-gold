@@ -6,39 +6,39 @@ export const aiCases = [
     id: 1, 
     name: 'Fevur Case', 
     price: 10, 
-    image: 'src/assets/cases/ai/fevur.png',
+    image: 'assets/ai/fevur.png',
     items: [
-      new CaseItem('Boost Pistol', 'src/assets/cases/ai/boostpistol.png', 3, 'COMMON'),
-      new CaseItem('Angry Girl Gun', 'src/assets/cases/ai/angrigirl.png', 8, 'UNCOMMON'),
-      new CaseItem('Angry Girl Gun', 'src/assets/cases/ai/angrigirl.png', 15, 'RARE'),
-      new CaseItem('Pink AWP', 'src/assets/cases/ai/pinkawp.png', 20, 'EPIC'),
-      new CaseItem('Red Knife', 'src/assets/cases/ai/rubykarambit.png', 100, 'GOLDEN')
+      new CaseItem('Boost Pistol', 'assets/ai/boostpistol.png', 3, 'COMMON'),
+      new CaseItem('Angry Girl Gun', 'assets/ai/angrigirl.png', 8, 'UNCOMMON'),
+      new CaseItem('Angry Girl Gun', 'assets/ai/angrigirl.png', 15, 'RARE'),
+      new CaseItem('Pink AWP', 'assets/ai/pinkawp.png', 20, 'EPIC'),
+      new CaseItem('Red Knife', 'assets/ai/rubykarambit.png', 100, 'GOLDEN')
     ]
   },
   {
     id: 2,
     name: 'Dreams & Goodnight Case',
     price: 11,
-    image: "src/assets/cases/ai/nightmor.png",
+    image: "assets/ai/nightmor.png",
     items: [
-      new CaseItem('Boost Pistol', 'src/assets/cases/ai/boostpistol.png', 3, 'COMMON'),
-      new CaseItem('Angry Girl Gun', 'src/assets/cases/ai/angrigirl.png', 8, 'UNCOMMON'),
-      new CaseItem('Angry Girl Gun', 'src/assets/cases/ai/angrigirl.png', 15, 'RARE'),
-      new CaseItem('Pink AWP', 'src/assets/cases/ai/pinkawp.png', 20, 'EPIC'),
-      new CaseItem('Red Knife', 'src/assets/cases/ai/rubykarambit.png', 100, 'GOLDEN')
+      new CaseItem('Boost Pistol', 'assets/ai/boostpistol.png', 3, 'COMMON'),
+      new CaseItem('Angry Girl Gun', 'assets/ai/angrigirl.png', 8, 'UNCOMMON'),
+      new CaseItem('Angry Girl Gun', 'assets/ai/angrigirl.png', 15, 'RARE'),
+      new CaseItem('Pink AWP', 'assets/ai/pinkawp.png', 20, 'EPIC'),
+      new CaseItem('Red Knife', 'assets/ai/rubykarambit.png', 100, 'GOLDEN')
     ]
   },
   {
     id: 3,
     name: 'Sports Case',
     price: 12,
-    image: "src/assets/cases/ai/2013sports.png",
+    image: "assets/ai/2013sports.png",
     items: [
-      new CaseItem('Boost Pistol', 'src/assets/cases/ai/boostpistol.png', 3, 'COMMON'),
-      new CaseItem('Angry Girl Gun', 'src/assets/cases/ai/angrigirl.png', 8, 'UNCOMMON'),
-      new CaseItem('Angry Girl Gun', 'src/assets/cases/ai/angrigirl.png', 15, 'RARE'),
-      new CaseItem('Pink AWP', 'src/assets/cases/ai/pinkawp.png', 20, 'EPIC'),
-      new CaseItem('Red Knife', 'src/assets/cases/ai/rubykarambit.png', 100, 'GOLDEN')
+      new CaseItem('Boost Pistol', 'assets/ai/boostpistol.png', 3, 'COMMON'),
+      new CaseItem('Angry Girl Gun', 'assets/ai/angrigirl.png', 8, 'UNCOMMON'),
+      new CaseItem('Angry Girl Gun', 'assets/ai/angrigirl.png', 15, 'RARE'),
+      new CaseItem('Pink AWP', 'assets/ai/pinkawp.png', 20, 'EPIC'),
+      new CaseItem('Red Knife', 'assets/ai/rubykarambit.png', 100, 'GOLDEN')
     ]
   }
 ];
